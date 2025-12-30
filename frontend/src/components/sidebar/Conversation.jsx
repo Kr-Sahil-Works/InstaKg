@@ -78,8 +78,8 @@ const Conversation = ({conversation,lastIdx,emoji}) => {
 <div className="relative flex items-center justify-center">
 	{isOnline && (
 		<div className="absolute w-14 h-14 rounded-full
-			bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-400
-			animate-spin-slow p-[2px]">
+			bg-linear-to-tr from-pink-500 via-red-500 to-yellow-400
+			animate-spin-slow p-0.5">
 		</div>
 	)}
 
