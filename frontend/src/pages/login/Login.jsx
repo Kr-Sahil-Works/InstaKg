@@ -1,6 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import useLogin from '../../hooks/useLogin'
 
 const Login = () => {
+
+  const [username,setUsername]= useState("");
+  const [password,setPassword]= useState("");
+
+  const {loading,login} = useLogin();
+
+  const handleSubmit = async (e) =>{
+    e.preventDefault();
+    await login(username,password);
+  }
+
   return (
     <div
       className="flex items-center justify-center min-h-screen bg-cover bg-center"
@@ -13,7 +26,7 @@ const Login = () => {
           <span className="text-[#ffb700]">ChatApp</span>
         </h1>
 
-        <form className="mt-4">
+        <form className="mt-4" onSubmit={handleSubmit}>
           <label className="text-white text-sm">Username</label>
           {/* UserName */}
           <>
@@ -34,10 +47,10 @@ const Login = () => {
     type="text"
     required
     placeholder="Username"
-    pattern="[A-Za-z][A-Za-z0-9\-]*"
-    minlength="3"
-    maxlength="30"
+    pattern="[A-Za-z][A-Za-z0-9\-_]*"
     title="Only letters, numbers or dash"
+    value={username}
+    onChange={(e) => setUsername(e.target.value)}
   />
 </label>
 <p className="validator-hint hidden">
@@ -68,7 +81,8 @@ const Login = () => {
     type="password"
     required
     placeholder="Password"
-    minlength="6"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
   />
 </label>
 <p className="validator-hint hidden">
@@ -77,12 +91,16 @@ const Login = () => {
           </>
         
 
-          <a href='#' className='text-sm  hover:underline hover:text-blue-600 mt-2 inline-block'>
+          <Link to='/signup' className='text-sm  hover:underline hover:text-blue-600 mt-2 inline-block'>
 						{"Don't"} have an account?
- 					</a>
+ 					</Link>
 
           <div>
-						<button className='btn btn-warning w-full  -ml-1.5 btn-sm mt-3'>Login</button>
+						<button className='btn btn-warning w-full  -ml-1.5 btn-sm mt-3'
+            disabled={loading}
+            >
+              {loading ? <span className="loading loading-spinner"></span>:"Login"}
+            </button>
 					</div>
           
 

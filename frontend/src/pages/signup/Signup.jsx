@@ -1,7 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import GenderCheckbox from "./GenderCheckbox.jsx";
+import useSignup from "../../hooks/useSignup.js";
 
 const Signup = () => {
+
+  const [inputs,setInputs] = useState({
+    fullName: '',
+    username: '',
+    password:'',
+    confirmPassword: '',
+    gender: ''
+  });
+
+  const {loading,signup} = useSignup();
+
+  const handleCheckboxChange = (gender) => {
+    setInputs({...inputs,gender})
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await signup(inputs)
+  }
+
 	return (
 		<div className='flex flex-col items-center justify-center min-w-96 mx-auto'>
 			<div className='w-96 p-6 rounded-xl shadow-xl
@@ -10,12 +32,15 @@ const Signup = () => {
 					Sign Up <span className='text-[#ffb700]'> ChatApp</span>
 				</h1>
 
-				<form>
+				<form onSubmit={handleSubmit}>
 					<div>
 						<label className='label p-2 mt-4 '>
 							<span className='text-base label-text'>Full Name</span>
 						</label>
-						<input type='text' placeholder='Sam Nick' className='w-80 input input-bordered  h-10' />
+						<input type='text' placeholder='Sam Nick' className='w-80 input input-bordered  h-10' 
+            value={inputs.fullName}
+            onChange={(e) => setInputs({...inputs, fullName: e.target.value})}
+            />
 					</div>
 
 					<div>
@@ -40,10 +65,10 @@ const Signup = () => {
     type="text"
     required
     placeholder="Username"
-    pattern="[A-Za-z][A-Za-z0-9\-]*"
-    minlength="3"
-    maxlength="30"
+    pattern="[A-Za-z][A-Za-z0-9\-_]*"
     title="Only letters, numbers or dash"
+     value={inputs.username}
+            onChange={(e) => setInputs({...inputs, username: e.target.value})}
   />
 </label>
 <p className="validator-hint hidden">
@@ -77,7 +102,8 @@ const Signup = () => {
     type="password"
     required
     placeholder="Password"
-    minlength="6"
+    value={inputs.password}
+    onChange={(e) => setInputs({...inputs, password: e.target.value})}
   />
 </label>
 <p className="validator-hint hidden">
@@ -110,7 +136,8 @@ const Signup = () => {
     type="password"
     required
     placeholder="Confirm Password"
-    minlength="6"
+     value={inputs.confirmPassword}
+    onChange={(e) => setInputs({...inputs, confirmPassword: e.target.value})}
   />
 </label>
 <p className="validator-hint hidden">
@@ -119,14 +146,18 @@ const Signup = () => {
           </>
 					</div>
 
-					<GenderCheckbox />
+					<GenderCheckbox onCheckboxChange = {handleCheckboxChange} selectedGender={inputs.gender}/>
 
-					<a className='text-sm hover:underline p-2 hover:text-blue-600 mt-2 inline-block' href='#'>
+					<Link to='/login' className='text-sm hover:underline p-2 hover:text-blue-600 mt-2 inline-block' href='#'>
 						Already have an account?
-					</a>
+					</Link>
 
 					 <div>
-						<button className='btn btn-soft btn-warning w-full  -ml-1.5 btn-sm mt-3'>Login</button>
+						<button className='btn btn-soft btn-warning w-full  -ml-1.5 btn-sm mt-3'
+            disabled = {loading}
+            >
+              {loading ? <span className="loading loading-spinner"></span> : "Sign Up" }
+            </button>
 					</div>
 				</form>
 			</div>
