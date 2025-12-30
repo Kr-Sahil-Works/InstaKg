@@ -5,12 +5,13 @@ import express from 'express';
 const app = express();
 
 const server = http.createServer(app);
-const io = new Server(server,{
-    cors:{
-        origin:["http://localhost:3000"],
-        methods:["GET","POST"]
-    }
-})
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  },
+  transports: ["websocket"] // ✅ IMPORTANT
+});
 
 export const getReciverSocketId = (reciverId) => {
     return userSocketMap[reciverId];
