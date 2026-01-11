@@ -14,7 +14,7 @@ import { app, server } from "./socket/socket.js";
 dotenv.config();
 
 const __dirname = path.resolve();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT; // 🔴 DO NOT fallback on Render
 
 /* ================= MIDDLEWARE ================= */
 app.use(express.json());
@@ -22,10 +22,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://musicconnect.onrender.com",
-    ],
+    origin: "https://musicconnect.onrender.com",
     credentials: true,
   })
 );
@@ -38,13 +35,14 @@ app.use("/api/users", userRoutes);
 /* ================= STATIC FRONTEND ================= */
 app.use(express.static(path.join(__dirname, "frontend", "dist")));
 
-/* ================= SPA FALLBACK ================= */
-app.use((req, res) => {
+/* 🚨 SPA FALLBACK — MUST IGNORE SOCKET.IO */
+app.get("*", (req, res) => {
+  if (req.path.startsWith("/socket.io")) return;
   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
 });
 
 /* ================= START SERVER ================= */
 server.listen(PORT, () => {
   connectToMongoDB();
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running on ${PORT}`);
 });
