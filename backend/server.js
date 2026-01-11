@@ -16,33 +16,35 @@ dotenv.config();
 const __dirname = path.resolve();
 const PORT = process.env.PORT || 5000;
 
-// ---------- MIDDLEWARE ----------
+/* ================= MIDDLEWARE ================= */
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(cors({
-	origin: [
-		"http://localhost:5173",
-		"https://musicconnect.onrender.com"
-	],
-	credentials: true,
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://musicconnect.onrender.com",
+    ],
+    credentials: true,
+  })
+);
 
-// ---------- ROUTES ----------
+/* ================= ROUTES ================= */
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
 
-// ---------- STATIC FRONTEND ----------
+/* ================= STATIC FRONTEND ================= */
 app.use(express.static(path.join(__dirname, "frontend", "dist")));
 
-// ---------- SPA FALLBACK (EXPRESS 5 SAFE) ----------
+/* ================= SPA FALLBACK ================= */
 app.use((req, res) => {
-	res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
 });
 
-// ---------- SERVER ----------
+/* ================= START SERVER ================= */
 server.listen(PORT, () => {
-	connectToMongoDB();
-	console.log(`Server Running on port ${PORT}`);
+  connectToMongoDB();
+  console.log(`🚀 Server running on port ${PORT}`);
 });
