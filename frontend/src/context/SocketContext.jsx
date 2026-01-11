@@ -19,11 +19,12 @@ export const SocketContextProvider = ({ children }) => {
         socket.disconnect();
         setSocket(null);
       }
+      setOnlineUsers([]); // ✅ reset
       return;
     }
 
     const newSocket = io("https://musicconnect.onrender.com", {
-      transports: ["websocket"],   // ✅ IMPORTANT
+      transports: ["polling", "websocket"], // ✅ Render-safe
       withCredentials: true,
       query: { userId: authUser._id },
     });
@@ -31,16 +32,22 @@ export const SocketContextProvider = ({ children }) => {
     setSocket(newSocket);
 
     newSocket.on("getOnlineUsers", (users) => {
-      setOnlineUsers(users);
+      setOnlineUsers(Array.isArray(users) ? users : []); // ✅ GUARDED
     });
 
     return () => {
       newSocket.disconnect();
+      setOnlineUsers([]);
     };
   }, [authUser]);
 
   return (
-    <SocketContext.Provider value={{ socket, onlineUsers }}>
+    <SocketContext.Provider
+      value={{
+        socket,
+        onlineUsers: Array.isArray(onlineUsers) ? onlineUsers : [], // ✅ double safety
+      }}
+    >
       {children}
     </SocketContext.Provider>
   );

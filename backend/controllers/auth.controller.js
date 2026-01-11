@@ -23,10 +23,11 @@ export const signup = async  (req,res) => {
 
         // Profile Pic from API 
         const boyProfilePic =
-  `https://api.dicebear.com/7.x/personas/svg?seed=${username}&gender=male`;
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff`;
 
 const girlProfilePic =
-  `https://api.dicebear.com/7.x/personas/svg?seed=${username}&gender=female`;
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=EC4899&color=fff`;
+
 
         const newUser = new User ({
             fullName,
