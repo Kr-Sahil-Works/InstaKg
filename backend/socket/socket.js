@@ -10,14 +10,14 @@ const io = new Server(server, {
 	cors: {
 		origin: [
 			"http://localhost:5173",
-			"https://chat-app-yt.onrender.com",
+			"https://musicconnect.onrender.com"
 		],
+		methods: ["GET", "POST"],
 		credentials: true,
 	},
 });
 
-
-const userSocketMap = {}; // { userId: socketId }
+const userSocketMap = {};
 
 export const getReceiverSocketId = (receiverId) => {
 	return userSocketMap[receiverId];
@@ -28,21 +28,21 @@ io.on("connection", (socket) => {
 
 	const userId = socket.handshake.query.userId?.toString();
 
-	if (userId && userId !== "undefined") {
+	if (userId) {
 		userSocketMap[userId] = socket.id;
 	}
 
 	io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
 	socket.on("disconnect", () => {
-	Object.keys(userSocketMap).forEach((key) => {
-		if (userSocketMap[key] === socket.id) {
-			delete userSocketMap[key];
-		}
-	});
-	io.emit("getOnlineUsers", Object.keys(userSocketMap));
-});
+		Object.keys(userSocketMap).forEach((key) => {
+			if (userSocketMap[key] === socket.id) {
+				delete userSocketMap[key];
+			}
+		});
 
+		io.emit("getOnlineUsers", Object.keys(userSocketMap));
+	});
 });
 
 export { app, server, io };
