@@ -22,7 +22,7 @@ export const SocketContextProvider = ({ children }) => {
       return;
     }
 
-    const newSocket = io("https://chat-app-yt.onrender.com", {
+    const newSocket = io("https://musicconnect.onrender.com", {
       transports: ["websocket"],   // ✅ IMPORTANT
       withCredentials: true,
       query: { userId: authUser._id },
