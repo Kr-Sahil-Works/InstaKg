@@ -9,7 +9,6 @@ import { useAuthContext } from "./context/AuthContext.jsx";
 
 const walls = [
   "/bg1.jpg",
-  "/bg2.jpg",
 ];
 
 
