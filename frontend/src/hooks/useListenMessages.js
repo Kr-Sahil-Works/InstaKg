@@ -13,8 +13,11 @@ const useListenMessages = () => {
     const handleNewMessage = (newMessage) => {
       if (!newMessage) return;
 
-      // ❌ message from other chat → ignore
-      if (newMessage.conversationId !== selectedConversation?._id) {
+      // 🔴 IGNORE messages from other conversations
+      if (
+        !selectedConversation ||
+        newMessage.conversationId !== selectedConversation._id
+      ) {
         return;
       }
 
@@ -23,6 +26,7 @@ const useListenMessages = () => {
         sound.play().catch(() => {});
       } catch {}
 
+      // ✅ SAFE append
       setMessages((prev) =>
         Array.isArray(prev) ? [...prev, newMessage] : [newMessage]
       );
