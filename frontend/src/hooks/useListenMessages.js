@@ -5,7 +5,7 @@ import notificationSound from "../assets/sounds/notification.mp3";
 
 const useListenMessages = () => {
   const { socket } = useSocketContext();
-  const { setMessages } = useConversation();
+  const { selectedConversation, setMessages } = useConversation();
 
   useEffect(() => {
     if (!socket) return;
@@ -13,21 +13,19 @@ const useListenMessages = () => {
     const handleNewMessage = (newMessage) => {
       if (!newMessage) return;
 
-      const safeMessage = {
-        ...newMessage,
-        shouldShake: true,
-      };
+      // ❌ message from other chat → ignore
+      if (newMessage.conversationId !== selectedConversation?._id) {
+        return;
+      }
 
       try {
         const sound = new Audio(notificationSound);
         sound.play().catch(() => {});
       } catch {}
 
-      // ✅ HARD GUARANTEE ARRAY
-      setMessages((prev) => {
-        if (!Array.isArray(prev)) return [safeMessage];
-        return [...prev, safeMessage];
-      });
+      setMessages((prev) =>
+        Array.isArray(prev) ? [...prev, newMessage] : [newMessage]
+      );
     };
 
     socket.on("newMessage", handleNewMessage);
@@ -35,7 +33,7 @@ const useListenMessages = () => {
     return () => {
       socket.off("newMessage", handleNewMessage);
     };
-  }, [socket, setMessages]);
+  }, [socket, selectedConversation?._id, setMessages]);
 };
 
 export default useListenMessages;
