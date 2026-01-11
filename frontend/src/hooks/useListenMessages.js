@@ -8,29 +8,30 @@ const useListenMessages = () => {
   const { selectedConversation, setMessages } = useConversation();
 
   useEffect(() => {
-    if (!socket || !selectedConversation?._id) return;
+    if (!socket) return;
 
     const handleNewMessage = (newMessage) => {
       if (!newMessage) return;
 
-      // ✅ HARD FILTER by conversation
-      if (newMessage.conversationId !== selectedConversation._id) return;
-
+      // 🔔 Play sound always
       try {
         const sound = new Audio(notificationSound);
         sound.play().catch(() => {});
       } catch {}
 
-      setMessages((prev) =>
-        Array.isArray(prev) ? [...prev, newMessage] : [newMessage]
-      );
+      // ❗ Only append if chat is open
+      if (
+        selectedConversation &&
+        newMessage.conversationId === selectedConversation._id
+      ) {
+        setMessages((prev) =>
+          Array.isArray(prev) ? [...prev, newMessage] : [newMessage]
+        );
+      }
     };
 
     socket.on("newMessage", handleNewMessage);
-
-    return () => {
-      socket.off("newMessage", handleNewMessage);
-    };
+    return () => socket.off("newMessage", handleNewMessage);
   }, [socket, selectedConversation?._id, setMessages]);
 };
 
