@@ -1,20 +1,26 @@
 import express from "express";
 import http from "http";
+import cors from "cors";
 import { Server } from "socket.io";
 
 const app = express();
+
+/* ✅ EXPRESS CORS (IMPORTANT) */
+app.use(
+  cors({
+    origin: "https://musicconnect.onrender.com",
+    credentials: true,
+  })
+);
 
 /* ================= HTTP SERVER ================= */
 const server = http.createServer(app);
 
 /* ================= SOCKET.IO ================= */
 const io = new Server(server, {
-  path: "/socket.io",
+  // ❌ DO NOT set custom path
   cors: {
-    origin: [
-      "http://localhost:5173",
-      "https://musicconnect.onrender.com",
-    ],
+    origin: "https://musicconnect.onrender.com",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -29,25 +35,18 @@ export const getReceiverSocketId = (receiverId) => {
 
 /* ================= SOCKET CONNECTION ================= */
 io.on("connection", (socket) => {
-  console.log("✅ user connected:", socket.id);
+  console.log("✅ connected:", socket.id);
 
   const userId = socket.handshake.query.userId;
-
-  if (userId) {
-    userSocketMap[userId] = socket.id;
-  }
+  if (userId) userSocketMap[userId] = socket.id;
 
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {
     for (const key in userSocketMap) {
-      if (userSocketMap[key] === socket.id) {
-        delete userSocketMap[key];
-      }
+      if (userSocketMap[key] === socket.id) delete userSocketMap[key];
     }
-
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
-    console.log("❌ user disconnected:", socket.id);
   });
 });
 
