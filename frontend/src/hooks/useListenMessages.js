@@ -8,25 +8,19 @@ const useListenMessages = () => {
   const { selectedConversation, setMessages } = useConversation();
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !selectedConversation?._id) return;
 
     const handleNewMessage = (newMessage) => {
       if (!newMessage) return;
 
-      // 🔴 IGNORE messages from other conversations
-      if (
-        !selectedConversation ||
-        newMessage.conversationId !== selectedConversation._id
-      ) {
-        return;
-      }
+      // ✅ HARD FILTER by conversation
+      if (newMessage.conversationId !== selectedConversation._id) return;
 
       try {
         const sound = new Audio(notificationSound);
         sound.play().catch(() => {});
       } catch {}
 
-      // ✅ SAFE append
       setMessages((prev) =>
         Array.isArray(prev) ? [...prev, newMessage] : [newMessage]
       );
