@@ -64,12 +64,13 @@ export const SocketContextProvider = ({ children }) => {
 			return;
 		}
 
-		const newSocket = io("https://chat-app-yt.onrender.com", {
-			transports: ["websocket"],
-			query: {
-				userId: authUser._id,
-			},
-		});
+	const newSocket = io("https://chat-app-yt.onrender.com", {
+	path: "/socket.io",
+	withCredentials: true,
+	query: { userId: authUser._id },
+});
+
+
 
 		setSocket(newSocket);
 
