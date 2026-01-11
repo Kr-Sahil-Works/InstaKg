@@ -4,22 +4,34 @@ import useConversation from "../zustand/useConversation";
 import notificationSound from "../assets/sounds/notification.mp3";
 
 const useListenMessages = () => {
-	const { socket } = useSocketContext();
-	const { setMessages } = useConversation();
+  const { socket } = useSocketContext();
+  const { setMessages } = useConversation();
 
-	useEffect(() => {
-		if (!socket) return;
+  useEffect(() => {
+    if (!socket) return;
 
-		socket.on("newMessage", (newMessage) => {
-			newMessage.shouldShake = true;
-			const sound = new Audio(notificationSound);
-			sound.play();
+    const handleNewMessage = (newMessage) => {
+      if (!newMessage) return;
 
-			setMessages((prev) => [...prev, newMessage]);
-		});
+      newMessage.shouldShake = true;
 
-		return () => socket.off("newMessage");
-	}, [socket, setMessages]);
+      try {
+        const sound = new Audio(notificationSound);
+        sound.play().catch(() => {});
+      } catch {}
+
+      // ✅ GUARANTEE prev is array
+      setMessages((prev) =>
+        Array.isArray(prev) ? [...prev, newMessage] : [newMessage]
+      );
+    };
+
+    socket.on("newMessage", handleNewMessage);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [socket, setMessages]);
 };
 
 export default useListenMessages;

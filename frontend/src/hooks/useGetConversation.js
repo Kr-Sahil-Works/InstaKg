@@ -6,28 +6,47 @@ const useGetConversations = () => {
   const [conversations, setConversations] = useState([]);
 
   useEffect(() => {
+    let isMounted = true; // ✅ prevent state update after unmount
+
     const getConversations = async () => {
       setLoading(true);
       try {
         const res = await fetch("/api/users");
         const data = await res.json();
 
+        if (!isMounted) return;
+
         if (data?.error) throw new Error(data.error);
 
-        // ✅ GUARANTEE ARRAY
-        setConversations(Array.isArray(data) ? data : []);
+        // ✅ ALWAYS ARRAY
+        if (Array.isArray(data)) {
+          setConversations(data);
+        } else if (Array.isArray(data?.users)) {
+          setConversations(data.users);
+        } else {
+          setConversations([]);
+        }
       } catch (error) {
-        toast.error(error.message);
-        setConversations([]); // ✅ fallback
+        if (isMounted) {
+          toast.error(error.message || "Failed to load conversations");
+          setConversations([]); // ✅ safe fallback
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     getConversations();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  return { loading, conversations };
+  return {
+    loading,
+    conversations: Array.isArray(conversations) ? conversations : [], // ✅ double safety
+  };
 };
 
 export default useGetConversations;
