@@ -13,17 +13,21 @@ const useListenMessages = () => {
     const handleNewMessage = (newMessage) => {
       if (!newMessage) return;
 
-      newMessage.shouldShake = true;
+      const safeMessage = {
+        ...newMessage,
+        shouldShake: true,
+      };
 
       try {
         const sound = new Audio(notificationSound);
         sound.play().catch(() => {});
       } catch {}
 
-      // ✅ GUARANTEE prev is array
-      setMessages((prev) =>
-        Array.isArray(prev) ? [...prev, newMessage] : [newMessage]
-      );
+      // ✅ HARD GUARANTEE ARRAY
+      setMessages((prev) => {
+        if (!Array.isArray(prev)) return [safeMessage];
+        return [...prev, safeMessage];
+      });
     };
 
     socket.on("newMessage", handleNewMessage);
