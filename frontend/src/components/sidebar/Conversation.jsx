@@ -138,22 +138,14 @@
 
 // export default Conversation;
 
-
-
-import React from "react";
-import useConversations from "../../zustand/useConversation";
+import useConversation from "../../zustand/useConversation";
 import { useSocketContext } from "../../context/SocketContext";
 
 const Conversation = ({ conversation, lastIdx, emoji }) => {
-  const { selectedConversation, setSelectedConversation } =
-    useConversations();
-
+  const { selectedConversation, setSelectedConversation } = useConversation();
   const { onlineUsers } = useSocketContext();
 
-  // ✅ ALWAYS ARRAY
-  const safeOnlineUsers = Array.isArray(onlineUsers) ? onlineUsers : [];
-
-  const isOnline = safeOnlineUsers.includes(conversation._id);
+  const isOnline = onlineUsers?.includes(conversation._id);
   const isSelected = selectedConversation?._id === conversation._id;
 
   return (
@@ -163,38 +155,33 @@ const Conversation = ({ conversation, lastIdx, emoji }) => {
         ${isSelected ? "bg-sky-500" : ""}`}
         onClick={() => setSelectedConversation(conversation)}
       >
-        <div className="relative flex items-center justify-center">
+        <div className="relative">
           {isOnline && (
-            <div
-              className="absolute w-14 h-14 rounded-full
-              bg-linear-to-tr from-pink-500 via-red-500 to-yellow-400
-              animate-spin-slow p-0.5"
-            />
+            <span className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full" />
           )}
-
-          <div
-            className={`avatar rounded-full relative z-10
-            ${!isOnline ? "ring-2 ring-gray-500 opacity-50" : ""}`}
-          >
-            <div className="w-12 rounded-full">
-              <img src={conversation.profilePic} alt="avatar" />
-            </div>
-          </div>
+          <img
+            src={conversation.profilePic}
+            alt="avatar"
+            className="w-12 rounded-full"
+          />
         </div>
 
-        <div className="flex flex-col flex-1">
-          <div className="flex gap-3 justify-between">
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex justify-between">
             <p className="font-bold text-gray-200">
               {conversation.fullName}
             </p>
-            <span className="text-xl">{emoji}</span>
+            <span>{emoji}</span>
           </div>
+
+          {/* 🔥 LAST MESSAGE PREVIEW */}
+          <p className="text-sm text-gray-400 truncate">
+            {conversation.lastMessage || "No messages yet"}
+          </p>
         </div>
       </div>
 
-      {!lastIdx && (
-        <div className="divider my-0 py-0 h-1 opacity-40" />
-      )}
+      {!lastIdx && <div className="divider my-0 py-0 h-1 opacity-40" />}
     </>
   );
 };

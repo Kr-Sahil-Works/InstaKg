@@ -1,22 +1,19 @@
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { useSocketContext } from "../context/SocketContext";
 
-const useGetConversations = () => {
-  const [loading, setLoading] = useState(false);
+const useGetConversation = () => {
   const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(false);
   const { socket } = useSocketContext();
 
   const fetchConversations = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await fetch("/api/users", {
         credentials: "include",
       });
       const data = await res.json();
       setConversations(Array.isArray(data) ? data : []);
-    } catch {
-      toast.error("Failed to load conversations");
     } finally {
       setLoading(false);
     }
@@ -30,18 +27,26 @@ const useGetConversations = () => {
   useEffect(() => {
     if (!socket) return;
 
-    const handleConversationUpdate = () => {
-      fetchConversations();
+    const handleConversationUpdate = ({
+      conversationId,
+      lastMessage,
+    }) => {
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv._id === conversationId
+            ? { ...conv, lastMessage }
+            : conv
+        )
+      );
     };
 
     socket.on("conversationUpdated", handleConversationUpdate);
 
-    return () => {
+    return () =>
       socket.off("conversationUpdated", handleConversationUpdate);
-    };
   }, [socket]);
 
-  return { loading, conversations };
+  return { conversations, loading };
 };
 
-export default useGetConversations;
+export default useGetConversation;
