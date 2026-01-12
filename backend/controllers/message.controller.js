@@ -35,19 +35,29 @@ export const sendMessage = async (req, res) => {
 
     // 3️⃣ Update conversation
     conversation.messages.push(newMessage._id);
+    conversation.updatedAt = new Date();
     await conversation.save();
 
-    // 4️⃣ Emit ONLY to receiver
+    // 4️⃣ Emit socket events to receiver
     const receiverSocketId = getReceiverSocketId(receiverId.toString());
 
     if (receiverSocketId) {
+      // 🔹 Update open chat
       io.to(receiverSocketId).emit(
         "newMessage",
         newMessage.toObject()
       );
+
+      // 🔹 Update sidebar conversation list
+      io.to(receiverSocketId).emit("conversationUpdated", {
+        conversationId: conversation._id,
+        senderId,
+        lastMessage: message,
+        updatedAt: conversation.updatedAt,
+      });
     }
 
-    // 5️⃣ Send response to sender
+    // 5️⃣ Respond to sender
     return res.status(201).json(newMessage);
   } catch (error) {
     console.error("❌ Error in sendMessage:", error);
