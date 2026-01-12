@@ -13,26 +13,24 @@ const useListenMessages = () => {
     const handleNewMessage = (newMessage) => {
       if (!newMessage) return;
 
-      // 🔔 Play sound always
       try {
-        const sound = new Audio(notificationSound);
-        sound.play().catch(() => {});
+        new Audio(notificationSound).play().catch(() => {});
       } catch {}
 
-      // ❗ Only append if chat is open
-      if (
-        selectedConversation &&
-        newMessage.conversationId === selectedConversation._id
-      ) {
-        setMessages((prev) =>
-          Array.isArray(prev) ? [...prev, newMessage] : [newMessage]
-        );
-      }
+      setMessages((prev) => {
+        if (
+          selectedConversation?._id === newMessage.conversationId
+        ) {
+          return [...prev, newMessage];
+        }
+        return prev;
+      });
     };
 
     socket.on("newMessage", handleNewMessage);
+
     return () => socket.off("newMessage", handleNewMessage);
-  }, [socket, selectedConversation?._id, setMessages]);
+  }, [socket, setMessages]); // ❌ no selectedConversation here
 };
 
 export default useListenMessages;

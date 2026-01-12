@@ -4,13 +4,10 @@ import useConversation from "../zustand/useConversation";
 
 const useGetMessages = () => {
   const [loading, setLoading] = useState(false);
-  const { selectedConversation, messages, setMessages } = useConversation();
+  const { selectedConversation, setMessages, messages } = useConversation();
 
   useEffect(() => {
-    if (!selectedConversation?._id) {
-      setMessages([]); // ✅ reset safely
-      return;
-    }
+    if (!selectedConversation?._id) return;
 
     const getMessages = async () => {
       setLoading(true);
@@ -19,12 +16,9 @@ const useGetMessages = () => {
           `/api/messages/${selectedConversation._id}`
         );
         const data = await res.json();
-
-        if (data?.error) throw new Error(data.error);
-
         setMessages(Array.isArray(data) ? data : []);
-      } catch (error) {
-        toast.error(error.message);
+      } catch {
+        toast.error("Failed to load messages");
         setMessages([]);
       } finally {
         setLoading(false);
@@ -32,12 +26,9 @@ const useGetMessages = () => {
     };
 
     getMessages();
-  }, [selectedConversation?._id]);
+  }, [selectedConversation?._id, setMessages]);
 
-  return {
-    loading,
-    messages: Array.isArray(messages) ? messages : [],
-  };
+  return { loading, messages };
 };
 
 export default useGetMessages;

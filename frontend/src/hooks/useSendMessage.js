@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 
 const useSendMessage = () => {
   const [loading, setLoading] = useState(false);
-  const { setMessages, selectedConversation } = useConversation();
+  const { selectedConversation, setMessages } = useConversation();
 
   const sendMessage = async (message) => {
     if (!selectedConversation?._id) return;
@@ -15,22 +15,15 @@ const useSendMessage = () => {
         `/api/messages/send/${selectedConversation._id}`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message }),
         }
       );
 
       const data = await res.json();
-      if (data?.error) throw new Error(data.error);
-
-      // ✅ SAFE FUNCTIONAL UPDATE
-      setMessages((prev) =>
-        Array.isArray(prev) ? [...prev, data] : [data]
-      );
-    } catch (error) {
-      toast.error(error.message);
+      setMessages((prev) => [...prev, data]);
+    } catch {
+      toast.error("Message not sent");
     } finally {
       setLoading(false);
     }

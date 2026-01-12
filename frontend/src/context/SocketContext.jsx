@@ -12,49 +12,47 @@ export const SocketContextProvider = ({ children }) => {
   const { authUser } = useAuthContext();
 
   const socketRef = useRef(null);
+  const [socket, setSocket] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
 
   useEffect(() => {
-    // 🔴 If user logs out → clean up
+    // 🔴 Logout → full cleanup
     if (!authUser) {
       if (socketRef.current) {
+        socketRef.current.off(); // ✅ remove all listeners
         socketRef.current.disconnect();
         socketRef.current = null;
       }
+      setSocket(null);
       setOnlineUsers([]);
       return;
     }
 
-    // 🔹 Create socket only once per login
+    // ✅ Create socket once per login
     if (!socketRef.current) {
-      socketRef.current = io("https://musicconnect.onrender.com", {
-        transports: ["polling", "websocket"], // ✅ Render-safe
+      const newSocket = io("https://musicconnect.onrender.com", {
+        transports: ["websocket", "polling"],
         withCredentials: true,
         query: { userId: authUser._id },
-        autoConnect: true,
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
       });
 
-      // 🔹 Online users listener
-      socketRef.current.on("getOnlineUsers", (users) => {
+      socketRef.current = newSocket;
+      setSocket(newSocket);
+
+      // ✅ Online users listener (ONLY ONCE)
+      newSocket.on("getOnlineUsers", (users) => {
         setOnlineUsers(Array.isArray(users) ? users : []);
       });
     }
 
-    return () => {
-      // ❗ Do NOT disconnect here (keeps realtime stable)
-    };
+    // ❗ Do NOT disconnect here
   }, [authUser]);
 
   return (
-    <SocketContext.Provider
-      value={{
-        socket: socketRef.current,
-        onlineUsers,
-      }}
-    >
+    <SocketContext.Provider value={{ socket, onlineUsers }}>
       {children}
     </SocketContext.Provider>
   );
