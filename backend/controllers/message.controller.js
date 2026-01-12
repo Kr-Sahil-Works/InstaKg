@@ -9,7 +9,7 @@ export const sendMessage = async (req, res) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
-    // 🔹 Find or create conversation
+    // 1️⃣ Find or create conversation
     let conversation = await Conversation.findOne({
       participants: { $all: [senderId, receiverId] },
     });
@@ -21,37 +21,32 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    // 🔹 IMPORTANT: include conversationId
-    const newMessage = new Message({
+    // 2️⃣ Create message
+    const newMessage = await Message.create({
       senderId,
       receiverId,
       conversationId: conversation._id,
       message,
     });
 
+    // 3️⃣ Update conversation
     conversation.messages.push(newMessage._id);
+    await conversation.save();
 
-    // 🔹 Save in parallel
-    await Promise.all([
-      conversation.save(),
-      newMessage.save(),
-    ]);
-
-    // 🔹 SOCKET.IO: send only to sender + receiver
+    // 4️⃣ Emit ONLY to receiver
     const receiverSocketId = getReceiverSocketId(receiverId.toString());
-    const senderSocketId = getReceiverSocketId(senderId.toString());
 
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
+      io.to(receiverSocketId).emit(
+        "newMessage",
+        newMessage.toObject() // ✅ plain object
+      );
     }
 
-    if (senderSocketId) {
-      io.to(senderSocketId).emit("newMessage", newMessage);
-    }
-
+    // 5️⃣ Respond to sender
     return res.status(201).json(newMessage);
   } catch (error) {
-    console.error("Error in sendMessage controller:", error);
+    console.error("Error in sendMessage:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -76,7 +71,7 @@ export const getMessages = async (req, res) => {
         : []
     );
   } catch (error) {
-    console.error("Error in getMessages controller:", error);
+    console.error("Error in getMessages:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
