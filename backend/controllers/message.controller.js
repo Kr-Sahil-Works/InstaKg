@@ -9,6 +9,10 @@ export const sendMessage = async (req, res) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
+    if (!message || !receiverId) {
+      return res.status(400).json({ error: "Invalid data" });
+    }
+
     // 1️⃣ Find or create conversation
     let conversation = await Conversation.findOne({
       participants: { $all: [senderId, receiverId] },
@@ -39,14 +43,14 @@ export const sendMessage = async (req, res) => {
     if (receiverSocketId) {
       io.to(receiverSocketId).emit(
         "newMessage",
-        newMessage.toObject() // ✅ plain object
+        newMessage.toObject()
       );
     }
 
-    // 5️⃣ Respond to sender
+    // 5️⃣ Send response to sender
     return res.status(201).json(newMessage);
   } catch (error) {
-    console.error("Error in sendMessage:", error);
+    console.error("❌ Error in sendMessage:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -65,13 +69,9 @@ export const getMessages = async (req, res) => {
       return res.status(200).json([]);
     }
 
-    return res.status(200).json(
-      Array.isArray(conversation.messages)
-        ? conversation.messages
-        : []
-    );
+    return res.status(200).json(conversation.messages || []);
   } catch (error) {
-    console.error("Error in getMessages:", error);
+    console.error("❌ Error in getMessages:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
