@@ -7,18 +7,30 @@ const useGetMessages = () => {
   const { selectedConversation, setMessages, messages } = useConversation();
 
   useEffect(() => {
-    if (!selectedConversation?._id) return;
+    // 🔴 IMPORTANT: reset when no conversation
+    if (!selectedConversation?._id) {
+      setMessages([]);
+      return;
+    }
 
     const getMessages = async () => {
       setLoading(true);
       try {
         const res = await fetch(
-          `/api/messages/${selectedConversation._id}`
+          `/api/messages/${selectedConversation._id}`,
+          { credentials: "include" }
         );
+
         const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data?.error || "Failed to load messages");
+        }
+
+        // ✅ Replace messages ONCE per conversation
         setMessages(Array.isArray(data) ? data : []);
-      } catch {
-        toast.error("Failed to load messages");
+      } catch (error) {
+        toast.error(error.message);
         setMessages([]);
       } finally {
         setLoading(false);
@@ -28,7 +40,10 @@ const useGetMessages = () => {
     getMessages();
   }, [selectedConversation?._id, setMessages]);
 
-  return { loading, messages };
+  return {
+    loading,
+    messages: Array.isArray(messages) ? messages : [],
+  };
 };
 
 export default useGetMessages;
