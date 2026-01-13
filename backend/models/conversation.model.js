@@ -1,21 +1,26 @@
 import mongoose from "mongoose";
 
-const conversationSchema = new mongoose.Schema({
-    participants:[
-        {
-            type:mongoose.Schema.Types.ObjectId,
-            ref:'User'
-        }
+const conversationSchema = new mongoose.Schema(
+  {
+    participants: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+      required: true,
+    },
+    messages: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Message",
+      },
     ],
-    messages:[
-        {
-            type:mongoose.Schema.Types.ObjectId,
-            ref:'Message',
-            default:[],
-        }
-    ]
-}, {timestamps:true})
+  },
+  { timestamps: true }
+);
 
-const Conversation = mongoose.model("Conversation", conversationSchema);
+// enforce uniqueness
+conversationSchema.index(
+  { participants: 1 },
+  { unique: true }
+);
 
-export default Conversation;
+export default mongoose.model("Conversation", conversationSchema);

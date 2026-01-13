@@ -1,65 +1,102 @@
-import express from "express";
-import http from "http";
-import cors from "cors";
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
+import cookie from "cookie";
+import User from "../models/user.model.js";
+import Message from "../models/message.model.js";
 
-const app = express();
+let io;
 
-/* ================= EXPRESS CORS ================= */
-app.use(
-  cors({
-    origin: [
-      "https://musicconnect.onrender.com",
-      "http://localhost:3000",
-    ],
-    credentials: true,
-  })
-);
+// userId => Set(socketId)
+const userSocketMap = new Map();
 
-/* ================= HTTP SERVER ================= */
-const server = http.createServer(app);
+export const initSocket = (server) => {
+  io = new Server(server, {
+    cors: {
+      origin: [
+        "http://localhost:5173",
+        "https://musicconnect.onrender.com",
+      ],
+      credentials: true,
+    },
+  });
 
-/* ================= SOCKET.IO ================= */
-const io = new Server(server, {
-  cors: {
-    origin: [
-      "https://musicconnect.onrender.com",
-      "http://localhost:3000",
-    ],
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
+  /* 🔐 AUTH VIA COOKIE */
+  io.use((socket, next) => {
+    try {
+      const cookies = socket.handshake.headers.cookie;
+      const token = cookie.parse(cookies || "").jwt;
+      if (!token) return next(new Error("Unauthorized"));
 
-/* ================= USER SOCKET MAP ================= */
-const userSocketMap = {}; // userId -> socketId
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      socket.userId = decoded.userId;
+      next();
+    } catch {
+      next(new Error("Unauthorized"));
+    }
+  });
 
-export const getReceiverSocketId = (receiverId) => {
-  return userSocketMap[receiverId];
+  io.on("connection", async (socket) => {
+    const userId = socket.userId;
+
+    /* ✅ USER ONLINE */
+    await User.findByIdAndUpdate(userId, { lastSeen: null });
+
+    if (!userSocketMap.has(userId)) {
+      userSocketMap.set(userId, new Set());
+    }
+    userSocketMap.get(userId).add(socket.id);
+
+    io.emit("getOnlineUsers", [...userSocketMap.keys()]);
+
+    /* ✅ MESSAGE SEEN */
+    socket.on("messageSeen", async (messageId) => {
+      const msg = await Message.findByIdAndUpdate(
+        messageId,
+        { seen: true },
+        { new: true }
+      );
+
+      if (!msg) return;
+
+      getReceiverSocketIds(msg.senderId.toString()).forEach((sid) =>
+        io.to(sid).emit("messageSeen", msg._id)
+      );
+    });
+
+    /* ✍️ TYPING */
+    socket.on("typing", (receiverId) => {
+      getReceiverSocketIds(receiverId).forEach((sid) =>
+        io.to(sid).emit("typing", userId)
+      );
+    });
+
+    socket.on("stopTyping", (receiverId) => {
+      getReceiverSocketIds(receiverId).forEach((sid) =>
+        io.to(sid).emit("stopTyping", userId)
+      );
+    });
+
+    /* 🔌 DISCONNECT */
+    socket.on("disconnect", async () => {
+      const sockets = userSocketMap.get(userId);
+      sockets?.delete(socket.id);
+
+      if (!sockets || sockets.size === 0) {
+        userSocketMap.delete(userId);
+
+        await User.findByIdAndUpdate(userId, {
+          lastSeen: new Date(),
+        });
+
+        io.emit("getOnlineUsers", [...userSocketMap.keys()]);
+      }
+    });
+  });
 };
 
-/* ================= SOCKET CONNECTION ================= */
-io.on("connection", (socket) => {
-  console.log("✅ Socket connected:", socket.id);
+/* ✅ THIS EXPORT WAS MISSING */
+export const getReceiverSocketIds = (userId) => {
+  return userSocketMap.get(userId) || new Set();
+};
 
-  const userId = socket.handshake.query.userId;
-
-  if (userId) {
-    userSocketMap[userId] = socket.id;
-  }
-
-  // 🔥 Emit online users list
-  io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-  socket.on("disconnect", () => {
-    console.log("❌ Socket disconnected:", socket.id);
-
-    if (userId) {
-      delete userSocketMap[userId];
-    }
-
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
-  });
-});
-
-export { app, server, io };
+export { io };

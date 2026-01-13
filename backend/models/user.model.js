@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema ( {
     fullName :{
         type:String,
         required:true,
-        unique:true
+        trim: true,
     },
     username :{
         type:String,
@@ -24,7 +24,12 @@ const userSchema = new mongoose.Schema ( {
     profilePic :{
         type:String,
         default: "",
-    }
+    },
+    lastSeen: {
+      type: Date,
+      default: Date.now,
+}
+
     // createdAt, updatedAt => Member since <createdAt>
 }, 
 {timestamps:true})
