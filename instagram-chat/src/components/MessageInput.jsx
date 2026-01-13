@@ -8,16 +8,21 @@ export default function MessageInput({ receiverId, socket }) {
   const timerRef = useRef(null);
   const textareaRef = useRef(null);
 
-  const send = async () => {
-    if (!text.trim()) return;
+  const send = async (value) => {
+  const msg = value.trim();
+  if (!msg) return;
 
+  try {
     await api.post(`/messages/${receiverId}`, {
-      message: text.trim(),
+      message: msg,
     });
-
     setText("");
     textareaRef.current?.focus();
-  };
+  } catch (err) {
+    console.error("SEND FAILED:", err.response?.data || err);
+  }
+};
+
 
   const handleChange = (e) => {
     setText(e.target.value);
@@ -33,7 +38,9 @@ export default function MessageInput({ receiverId, socket }) {
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      send();
+
+      // ✅ READ DIRECT VALUE (FIX)
+      send(e.currentTarget.value);
     }
   };
 
@@ -77,7 +84,7 @@ export default function MessageInput({ receiverId, socket }) {
 
         {/* SEND */}
         <button
-          onClick={send}
+          onClick={() => send(text)}
           disabled={!text.trim()}
           className="
             p-2 rounded-full
@@ -92,7 +99,6 @@ export default function MessageInput({ receiverId, socket }) {
         </button>
       </div>
 
-      {/* HINT */}
       <p className="mt-1 text-[10px] text-muted-foreground text-center">
         Enter to send • Shift + Enter for new line
       </p>

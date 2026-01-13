@@ -568,3 +568,64 @@ body {
 .gender-card:active {
   transform: scale(0.96);
 }
+
+
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.18s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.18s ease-in;
+}
+
+@keyframes vanish {
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.animate-vanish {
+  animation: vanish 0.2s ease forwards;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-pop {
+  animation: pop 0.2s ease;
+}

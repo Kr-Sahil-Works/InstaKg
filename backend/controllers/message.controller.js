@@ -1,19 +1,23 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
 import { io, getReceiverSocketIds } from "../socket/socket.js";
+import mongoose from "mongoose";
 
 /* ================= SEND MESSAGE ================= */
 export const sendMessage = async (req, res) => {
   try {
     const { message } = req.body;
     const receiverId = req.params.id;
-    const senderId = req.user._id.toString();
+    const senderId = req.user._id;
 
     if (!message?.trim()) {
       return res.status(400).json({ error: "Empty message" });
     }
 
-    const participants = [senderId, receiverId].sort();
+    const participants = [
+      new mongoose.Types.ObjectId(senderId),
+      new mongoose.Types.ObjectId(receiverId),
+    ].sort((a, b) => a.toString().localeCompare(b.toString()));
 
     let conversation = await Conversation.findOne({ participants });
 
@@ -27,7 +31,7 @@ export const sendMessage = async (req, res) => {
     const newMessage = await Message.create({
       senderId,
       receiverId,
-      conversationId: conversation._id,
+      conversationId: conversation._id, // ✅ FIX
       message: message.trim(),
     });
 
@@ -36,30 +40,31 @@ export const sendMessage = async (req, res) => {
 
     const payload = newMessage.toObject();
 
-    // ✅ EMIT TO RECEIVER
-    getReceiverSocketIds(receiverId).forEach((sid) =>
+    getReceiverSocketIds(receiverId.toString()).forEach((sid) =>
       io.to(sid).emit("newMessage", payload)
     );
 
-    // ✅ EMIT TO SENDER
-    getReceiverSocketIds(senderId).forEach((sid) =>
+    getReceiverSocketIds(senderId.toString()).forEach((sid) =>
       io.to(sid).emit("newMessage", payload)
     );
 
     res.status(201).json(payload);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("SEND MESSAGE ERROR:", err.message);
+    res.status(500).json({ error: err.message });
   }
 };
-
 /* ================= GET MESSAGES ================= */
 export const getMessages = async (req, res) => {
   try {
-    const senderId = req.user._id.toString();
+    const senderId = req.user._id;
     const userToChatId = req.params.id;
 
-    const participants = [senderId, userToChatId].sort();
+    // ✅ ObjectId-safe participants
+    const participants = [
+      new mongoose.Types.ObjectId(senderId),
+      new mongoose.Types.ObjectId(userToChatId),
+    ].sort((a, b) => a.toString().localeCompare(b.toString()));
 
     const conversation = await Conversation.findOne({ participants })
       .populate({
@@ -68,11 +73,11 @@ export const getMessages = async (req, res) => {
       });
 
     res.status(200).json(conversation?.messages || []);
-  } catch {
+  } catch (err) {
+    console.error("GET MESSAGES ERROR:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 /* ================= MARK MESSAGE SEEN ================= */
 export const markMessageSeen = async (req, res) => {
   try {
