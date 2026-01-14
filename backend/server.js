@@ -58,12 +58,12 @@ app.use("/api/users", userRoutes);
 
 /* ========== PROD FRONTEND ========== */
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "frontend", "dist")));
+  app.use(express.static(path.join(__dirname, "instagram-chat", "dist")));
 
   app.get("*", (req, res) => {
     if (req.path.startsWith("/socket.io")) return;
     res.sendFile(
-      path.join(__dirname, "frontend", "dist", "index.html")
+      path.join(__dirname, "instagram-chat", "dist", "index.html")
     );
   });
 }
