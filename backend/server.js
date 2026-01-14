@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cookieParser());
 
-/* ========== CORS (FIRST) ========== */
+/* ========== CORS ========== */
 app.use(
   cors({
     origin: [
@@ -35,7 +35,7 @@ app.use(
   })
 );
 
-/* ========== CSP (PRODUCTION SAFE) ========== */
+/* ========== CSP (FIXED) ========== */
 app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
@@ -58,7 +58,7 @@ app.use("/api/users", userRoutes);
 
 /* ========== PROD FRONTEND ========== */
 if (process.env.NODE_ENV === "production") {
-  const clientPath = path.join(__dirname, "frontend", "dist");
+  const clientPath = path.join(__dirname, "instagram-chat", "dist");
 
   app.use(express.static(clientPath));
 
@@ -68,7 +68,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-/* ========== START SERVER ========== */
+/* ========== START ========== */
 server.listen(PORT, async () => {
   await connectToMongoDB();
   initSocket(server);
