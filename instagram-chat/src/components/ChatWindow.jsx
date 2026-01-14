@@ -10,7 +10,7 @@ export default function ChatWindow({ user, socket }) {
   const bottomRef = useRef(null);
   const { authUser } = useContext(AuthContext);
 
-  /* ================= LOAD MESSAGES ================= */
+  /* LOAD MESSAGES */
   useEffect(() => {
     if (!user) return;
 
@@ -19,7 +19,7 @@ export default function ChatWindow({ user, socket }) {
     });
   }, [user]);
 
-  /* ================= SOCKET EVENTS ================= */
+  /* SOCKET EVENTS */
   useEffect(() => {
     if (!socket || !user) return;
 
@@ -81,7 +81,7 @@ export default function ChatWindow({ user, socket }) {
     };
   }, [socket, user]);
 
-  /* ================= MARK SEEN ================= */
+  /* MARK SEEN */
   useEffect(() => {
     if (!user || !authUser) return;
 
@@ -95,14 +95,13 @@ export default function ChatWindow({ user, socket }) {
     });
   }, [messages, user, authUser]);
 
-  /* ================= AUTO SCROLL ================= */
+  /* AUTO SCROLL */
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [messages, typing]);
 
-  /* ================= EMPTY ================= */
   if (!user) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-400">
@@ -111,10 +110,10 @@ export default function ChatWindow({ user, socket }) {
     );
   }
 
-  /* ================= RENDER ================= */
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto px-4 py-3">
+      {/* MESSAGES AREA – BIGGER ON MOBILE */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 md:py-3">
         {messages.map((msg) => (
           <Message key={msg._id} msg={msg} />
         ))}
@@ -128,7 +127,8 @@ export default function ChatWindow({ user, socket }) {
         <div ref={bottomRef} />
       </div>
 
-      <div className="shrink-0">
+      {/* INPUT */}
+      <div className="shrink-0 pb-safe">
         <MessageInput
           receiverId={user._id}
           socket={socket}

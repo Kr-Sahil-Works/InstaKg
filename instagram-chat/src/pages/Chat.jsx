@@ -23,6 +23,13 @@ export default function Chat() {
   const isOnline =
     selectedUser && onlineUsers.includes(selectedUser._id);
 
+  /* HIDE SIDEBAR ON MOBILE WHEN CHAT SELECTED */
+  useEffect(() => {
+    if (selectedUser) {
+      setOpen(false);
+    }
+  }, [selectedUser]);
+
   useEffect(() => {
     if (!selectedUser || isOnline) {
       setLastSeen(null);
@@ -36,6 +43,7 @@ export default function Chat() {
 
   return (
     <div className="h-screen flex overflow-hidden">
+      {/* SIDEBAR */}
       <Sidebar
         setSelectedUser={setSelectedUser}
         onlineUsers={onlineUsers}
@@ -45,11 +53,11 @@ export default function Chat() {
 
       {/* CHAT AREA */}
       <section className="flex flex-col flex-1 h-full">
-        {/* HEADER (FIXED) */}
-        <div className="shrink-0 h-16 px-4 flex items-center justify-between panel border-b">
+        {/* HEADER */}
+        <div className="shrink-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b">
           <div className="flex items-center gap-3">
             <button
-              className="md:hidden p-2 hover:bg-black/20 rounded"
+              className="md:hidden p-3 text-lg hover:bg-black/20 rounded"
               onClick={() => setOpen(true)}
             >
               ☰
@@ -57,9 +65,9 @@ export default function Chat() {
 
             {selectedUser ? (
               <>
-                <Avatar name={selectedUser.username} size={40} />
+                <Avatar name={selectedUser.username} size={44} />
                 <div>
-                  <span className="font-medium text-sm">
+                  <span className="font-medium text-base">
                     {selectedUser.username}
                   </span>
                   <div className="text-xs text-gray-400">
@@ -70,19 +78,23 @@ export default function Chat() {
                 </div>
               </>
             ) : (
-              <span className="font-medium">Messages</span>
+              <span className="font-medium text-lg">
+                Messages
+              </span>
             )}
           </div>
 
           <div className="flex items-center gap-3">
             <HiStatusOnline className="text-green-500" size={16} />
-            <span>{authUser.username}</span>
+            <span className="hidden sm:block">
+              {authUser.username}
+            </span>
             <ThemeToggle />
             <LogoutButton />
           </div>
         </div>
 
-        {/* CHAT WINDOW (SCROLL IS INSIDE) */}
+        {/* CHAT WINDOW */}
         <div className="flex-1 overflow-hidden">
           <ChatWindow user={selectedUser} socket={socket} />
         </div>
