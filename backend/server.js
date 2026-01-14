@@ -24,51 +24,51 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cookieParser());
 
-/* ========== CORS (🔥 MUST BE FIRST) ========== */
+/* ========== CORS (FIRST) ========== */
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://musicconnect.onrender.com",
+      "https://instakg.onrender.com",
     ],
     credentials: true,
   })
 );
 
-/* ========== CSP (FIXED) ========== */
+/* ========== CSP (PRODUCTION SAFE) ========== */
 app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "img-src 'self' data:",
+      "img-src 'self' data: https:",
       "style-src 'self' 'unsafe-inline'",
       "script-src 'self'",
-      "connect-src 'self' http://localhost:5000 ws://localhost:5000 https://musicconnect.onrender.com",
+      "connect-src 'self' https://instakg.onrender.com wss://instakg.onrender.com ws://localhost:5000 http://localhost:5000",
       "font-src 'self' data:",
     ].join("; ")
   );
   next();
 });
 
-/* ========== ROUTES ========== */
+/* ========== API ROUTES ========== */
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
 
 /* ========== PROD FRONTEND ========== */
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "instagram-chat", "dist")));
+  const clientPath = path.join(__dirname, "frontend", "dist");
+
+  app.use(express.static(clientPath));
 
   app.get("*", (req, res) => {
     if (req.path.startsWith("/socket.io")) return;
-    res.sendFile(
-      path.join(__dirname, "instagram-chat", "dist", "index.html")
-    );
+    res.sendFile(path.join(clientPath, "index.html"));
   });
 }
 
-/* ========== START ========== */
+/* ========== START SERVER ========== */
 server.listen(PORT, async () => {
   await connectToMongoDB();
   initSocket(server);
