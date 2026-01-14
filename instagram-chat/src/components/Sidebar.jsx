@@ -30,16 +30,17 @@ export default function Sidebar({
         />
       )}
 
-      <div
+      <aside
         className={`
-          fixed md:static z-50 h-full w-72
+          fixed md:static z-50
+          h-full w-72 flex flex-col
           panel border-r border-black/20
           transition-transform
           ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        {/* TOP BAR */}
-        <div className="flex items-center gap-2 px-3 py-3 border-b border-black/20">
+        {/* TOP BAR (FIXED) */}
+        <div className="shrink-0 px-3 py-3 border-b border-black/20 flex gap-2">
           <button
             onClick={() => {
               setSelectedUser(null);
@@ -56,18 +57,13 @@ export default function Sidebar({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search"
-              className="
-                w-full pl-9 pr-3 py-2 rounded-full
-                bg-black/20 text-sm
-                placeholder:text-gray-400
-                focus:outline-none
-              "
+              className="w-full pl-9 pr-3 py-2 rounded-full bg-black/20 text-sm"
             />
           </div>
         </div>
 
-        {/* USERS */}
-        <div className="overflow-y-auto">
+        {/* USERS (SCROLL ONLY HERE) */}
+        <div className="flex-1 overflow-y-auto">
           {filtered.map(user => (
             <div
               key={user._id}
@@ -75,18 +71,13 @@ export default function Sidebar({
                 setSelectedUser(user);
                 setOpen(false);
               }}
-              className="
-                flex items-center gap-3 px-4 py-3
-                cursor-pointer hover:bg-black/10
-              "
+              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-black/10"
             >
               <Avatar name={user.username} />
-
               <div className="flex-1">
                 <p className="text-sm font-medium">
                   {user.username}
                 </p>
-
                 {onlineUsers.includes(user._id) && (
                   <span className="text-xs text-green-400">
                     online
@@ -96,7 +87,7 @@ export default function Sidebar({
             </div>
           ))}
         </div>
-      </div>
+      </aside>
     </>
   );
 }

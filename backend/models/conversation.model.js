@@ -17,7 +17,10 @@ const conversationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// enforce uniqueness
+/*
+  ✅ Unique PAIR, not individual element
+  Order matters → we always SORT before saving
+*/
 conversationSchema.index(
   { participants: 1 },
   { unique: true }

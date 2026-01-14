@@ -10,53 +10,82 @@ export default function ChatWindow({ user, socket }) {
   const bottomRef = useRef(null);
   const { authUser } = useContext(AuthContext);
 
-  /* LOAD MESSAGES */
+  /* ================= LOAD MESSAGES ================= */
   useEffect(() => {
     if (!user) return;
-    api.get(`/messages/${user._id}`).then(res => {
+
+    api.get(`/messages/${user._id}`).then((res) => {
       setMessages(res.data || []);
     });
   }, [user]);
 
-  /* SOCKET LISTENERS */
+  /* ================= SOCKET EVENTS ================= */
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !user) return;
 
-    const onNewMessage = msg => {
+    const onNewMessage = (msg) => {
       if (
-        msg.senderId === user?._id ||
-        msg.receiverId === user?._id
+        msg.senderId === user._id ||
+        msg.receiverId === user._id
       ) {
-        setMessages(prev => [...prev, msg]);
+        setMessages((prev) => [...prev, msg]);
       }
     };
 
-    const onSeen = id => {
-      setMessages(prev =>
-        prev.map(m =>
+    const onEdited = (updated) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === updated._id ? updated : m
+        )
+      );
+    };
+
+    const onDeleted = (id) => {
+      setMessages((prev) =>
+        prev.filter((m) => m._id !== id)
+      );
+    };
+
+    const onSeen = (id) => {
+      setMessages((prev) =>
+        prev.map((m) =>
           m._id === id ? { ...m, seen: true } : m
         )
       );
     };
 
+    const onReaction = (updated) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === updated._id ? updated : m
+        )
+      );
+    };
+
     socket.on("newMessage", onNewMessage);
+    socket.on("messageEdited", onEdited);
+    socket.on("messageDeleted", onDeleted);
     socket.on("messageSeen", onSeen);
+    socket.on("reactionUpdated", onReaction);
     socket.on("typing", () => setTyping(true));
     socket.on("stopTyping", () => setTyping(false));
 
     return () => {
       socket.off("newMessage", onNewMessage);
+      socket.off("messageEdited", onEdited);
+      socket.off("messageDeleted", onDeleted);
       socket.off("messageSeen", onSeen);
+      socket.off("reactionUpdated", onReaction);
       socket.off("typing");
       socket.off("stopTyping");
     };
   }, [socket, user]);
 
-  /* MARK SEEN (SAFE) */
+  /* ================= MARK SEEN ================= */
   useEffect(() => {
-    if (!socket || !user) return;
+    if (!user || !authUser) return;
 
-    messages.forEach(m => {
+    messages.forEach((m) => {
       if (
         !m.seen &&
         m.receiverId === authUser._id
@@ -64,12 +93,16 @@ export default function ChatWindow({ user, socket }) {
         api.put(`/messages/seen/${m._id}`);
       }
     });
-  }, [messages, user]);
+  }, [messages, user, authUser]);
 
+  /* ================= AUTO SCROLL ================= */
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages, typing]);
 
+  /* ================= EMPTY ================= */
   if (!user) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-400">
@@ -78,15 +111,16 @@ export default function ChatWindow({ user, socket }) {
     );
   }
 
+  /* ================= RENDER ================= */
   return (
-    <div className="flex flex-col flex-1">
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
-        {messages.map(msg => (
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto px-4 py-3">
+        {messages.map((msg) => (
           <Message key={msg._id} msg={msg} />
         ))}
 
         {typing && (
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-gray-400 px-2">
             typing…
           </div>
         )}
@@ -94,7 +128,12 @@ export default function ChatWindow({ user, socket }) {
         <div ref={bottomRef} />
       </div>
 
-      <MessageInput receiverId={user._id} socket={socket} />
+      <div className="shrink-0">
+        <MessageInput
+          receiverId={user._id}
+          socket={socket}
+        />
+      </div>
     </div>
   );
 }

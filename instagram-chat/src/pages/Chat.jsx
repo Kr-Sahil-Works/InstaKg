@@ -23,7 +23,6 @@ export default function Chat() {
   const isOnline =
     selectedUser && onlineUsers.includes(selectedUser._id);
 
-  // ✅ FETCH LAST SEEN WHEN OFFLINE
   useEffect(() => {
     if (!selectedUser || isOnline) {
       setLastSeen(null);
@@ -32,11 +31,11 @@ export default function Chat() {
 
     api
       .get(`/users/${selectedUser._id}/last-seen`)
-      .then((res) => setLastSeen(res.data.lastSeen));
+      .then(res => setLastSeen(res.data.lastSeen));
   }, [selectedUser, isOnline]);
 
   return (
-    <div className="h-screen flex">
+    <div className="h-screen flex overflow-hidden">
       <Sidebar
         setSelectedUser={setSelectedUser}
         onlineUsers={onlineUsers}
@@ -44,9 +43,10 @@ export default function Chat() {
         setOpen={setOpen}
       />
 
-      <div className="flex flex-col flex-1">
-        {/* HEADER */}
-        <div className="h-16 px-4 flex items-center justify-between panel border-b">
+      {/* CHAT AREA */}
+      <section className="flex flex-col flex-1 h-full">
+        {/* HEADER (FIXED) */}
+        <div className="shrink-0 h-16 px-4 flex items-center justify-between panel border-b">
           <div className="flex items-center gap-3">
             <button
               className="md:hidden p-2 hover:bg-black/20 rounded"
@@ -82,8 +82,11 @@ export default function Chat() {
           </div>
         </div>
 
-        <ChatWindow user={selectedUser} socket={socket} />
-      </div>
+        {/* CHAT WINDOW (SCROLL IS INSIDE) */}
+        <div className="flex-1 overflow-hidden">
+          <ChatWindow user={selectedUser} socket={socket} />
+        </div>
+      </section>
     </div>
   );
 }

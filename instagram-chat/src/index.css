@@ -1,235 +1,77 @@
-/* @import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
-
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-}
-
-body {
-  display: block;
-  background-color: #0f172a;
-  color: white;
-  font-family: system-ui, sans-serif;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.15s ease-out;
-}
-
-@theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-}
-
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
-}
-
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-} */
-
-/* -------------------------------------------------------------------- */
-
-/* @import "tailwindcss";
-
-:root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 47.4% 11.2%;
-}
-
-.dark {
-  --background: 222.2 47.4% 11.2%;
-  --foreground: 210 40% 98%;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-}
-
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-} */
-
-/* -------------------------------------------------------------------- */
-
-
 @import "tailwindcss";
 
-/* ===============================
-   COLOR TOKENS
-   =============================== */
-
-:root {
-  /* LIGHT (kept simple) */
-  --background: 0 0% 100%;
-  --foreground: 222.2 47.4% 11.2%;
-  --panel: 0 0% 98%;
-  --border: 220 13% 91%;
+/* =========================================================
+   ROOT / LAYOUT
+   ========================================================= */
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
 }
 
-/* WHATSAPP DARK */
+/* =========================================================
+   COLOR TOKENS
+   ========================================================= */
+
+/* ---------- LIGHT MODE ---------- */
+:root {
+  /* LIGHT UI – warm paper tone */
+  --background: 34 28% 91%;        /* ≈ #ede4de */
+  --foreground: 222 20% 18%;       /* dark neutral text */
+  --panel: 34 30% 95%;             /* lighter than bg */
+  --border: 30 12% 82%;            /* warm soft border */
+
+  /* text variations */
+  --muted: 34 18% 88%;
+  --muted-foreground: 222 10% 38%;
+
+  /* accent (buttons / highlights) */
+  --primary: 172 80% 32%;          /* WhatsApp green */
+  --primary-foreground: 0 0% 100%;
+
+  /* transitions */
+  --theme-transition: 0.25s ease;
+}
+
+/* ---------- DARK MODE (WHATSAPP) ---------- */
 .dark {
-  --background: 210 11% 15%;      /* #111B21 */
-  --foreground: 0 0% 95%;        /* text */
-  --panel: 210 11% 18%;           /* #1F2C34 */
+  --background: 210 11% 15%;
+  --foreground: 0 0% 95%;
+  --panel: 210 11% 18%;
   --border: 210 10% 25%;
 }
 
-/* ===============================
-   BASE LAYOUT
-   =============================== */
-
-html,
-body,
-#root {
-  height: 100%;
-}
-
+/* =========================================================
+   BASE
+   ========================================================= */
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  transition:
+    background-color var(--theme-transition),
+    color var(--theme-transition);
 }
 
-/* ===============================
-   PANELS (SIDEBAR / CHAT)
-   =============================== */
+* {
+  border-color: hsl(var(--border));
+  transition:
+    background-color var(--theme-transition),
+    border-color var(--theme-transition),
+    color var(--theme-transition);
+}
 
+/* =========================================================
+   PANELS
+   ========================================================= */
 .panel {
   background-color: hsl(var(--panel));
 }
 
-/* ===============================
-   CHAT BACKGROUND (WHATSAPP STYLE)
-   =============================== */
-
+/* =========================================================
+   CHAT BACKGROUND
+   ========================================================= */
 .chat-bg {
   background-color: hsl(var(--background));
   background-image:
@@ -237,69 +79,67 @@ body {
   background-size: 22px 22px;
 }
 
-/* ===============================
-   MESSAGE BUBBLES
-   =============================== */
+.dark .chat-bg {
+  background-image:
+    radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+}
 
+/* =========================================================
+   MESSAGE BUBBLES
+   ========================================================= */
 .msg-in {
-  background-color: #202C33; /* incoming */
+  background-color: #202C33;
   color: #e9edef;
 }
 
 .msg-out {
-  background-color: #005C4B; /* outgoing */
+  background-color: #005C4B;
   color: #e9edef;
 }
 
-/* ===============================
-   SCROLLBAR (SUBTLE)
-   =============================== */
-
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.25);
   border-radius: 4px;
 }
 
-/* ===============================
-   ANIMATION (VERY SUBTLE)
-   =============================== */
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.18);
 }
 
-.animate-fade {
-  animation: fadeIn 0.15s ease-out;
+/* =========================================================
+   EMOJI PICKER (HOVER + ACTIVE)
+   ========================================================= */
+.emoji-panel button {
+  border-radius: 8px;
+  transition:
+    transform 0.12s ease,
+    background-color 0.12s ease;
 }
 
+.emoji-panel button:hover {
+  /* background-color: hsl(var(--border)); */
+  background-color: rgba(0,0,0,0.06);
+  transform: scale(1.15);
+}
 
+.emoji-panel button:active {
+  transform: scale(0.95);
+}
 
+.dark .emoji-panel button:hover {
+  background-color: rgba(255,255,255,0.12);
+}
 
-
-
-/* -------------------------------------------------------------------- */
-
-
-
-
-
-
-
-
-
-/* ================= AUTH BACKGROUND ================= */
-
+/* =========================================================
+   AUTH BACKGROUND
+   ========================================================= */
 .auth-bg {
   height: 100vh;
   display: flex;
@@ -316,34 +156,24 @@ body {
   background: rgba(15, 23, 42, 0.55);
 }
 
-/* ================= GLASS CARD ================= */
-
+/* =========================================================
+   AUTH GLASS CARD
+   ========================================================= */
 .auth-glass {
   position: relative;
   z-index: 2;
   width: 360px;
   padding: 32px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255,255,255,0.12);
   backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255,255,255,0.25);
   animation: popIn 0.4s ease;
 }
 
-@keyframes popIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* ================= CONTENT ================= */
-
+/* =========================================================
+   AUTH CONTENT
+   ========================================================= */
 .auth-title {
   text-align: center;
   font-size: 28px;
@@ -359,7 +189,7 @@ body {
   padding: 12px 14px;
   margin-bottom: 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255,255,255,0.15);
   color: white;
 }
 
@@ -369,46 +199,24 @@ body {
   outline: none;
   color: white;
   width: 100%;
-  font-size: 14px;
 }
 
 .auth-btn {
   width: 100%;
   padding: 12px;
-  margin-top: 10px;
   border-radius: 999px;
   background: white;
   color: black;
   font-weight: 600;
-  transition: transform 0.15s ease;
 }
 
 .auth-btn:active {
   transform: scale(0.95);
 }
 
-.auth-footer {
-  margin-top: 18px;
-  text-align: center;
-  font-size: 14px;
-  color: #e5e7eb;
-}
-
-.auth-footer a {
-  color: white;
-  font-weight: 600;
-}
-
-.auth-error {
-  color: #fecaca;
-  font-size: 14px;
-  margin-bottom: 10px;
-}
-
-
-
-/* ================= TOAST ================= */
-
+/* =========================================================
+   TOAST
+   ========================================================= */
 .toast {
   position: fixed;
   top: 24px;
@@ -421,75 +229,11 @@ body {
   gap: 12px;
   align-items: center;
   z-index: 100;
-  animation: fadeIn 0.25s ease;
 }
 
-.toast button {
-  background: transparent;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-}
-
-/* ================= AUTH LINKS ================= */
-
-.auth-link {
-  color: white;
-  
-  font-weight: 600;
-  font-style: normal;
-  display: inline-block;
-  cursor: pointer;
-  transition:
-    color 0.25s ease,
-    font-style 0.25s ease,
-    text-shadow 0.25s ease;
-}
-
-/* HOVER */
-.auth-link:hover {
-  color: #d2f703;
-  text-shadow: 0 4px 14px #911146;
-}
-
-/* CLICK → VANISH */
-.auth-link:active {
-  animation: vanish 0.35s ease forwards;
-}
-
-/* VANISH KEYFRAMES */
-@keyframes vanish {
-  0% {
-    opacity: 1;
-    filter: blur(0);
-  }
-  100% {
-    opacity: 0;
-    filter: blur(6px);
-  }
-}
-
-
-/* ================= FADE ================= */
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-
-
-
-
-
-/* ================= GENDER SELECTOR ================= */
-
+/* =========================================================
+   GENDER SELECTOR
+   ========================================================= */
 .gender-wrap {
   display: flex;
   justify-content: center;
@@ -497,135 +241,55 @@ body {
   margin: 18px 0;
 }
 
-/* BASE CARD */
 .gender-card {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
   border-radius: 999px;
   cursor: pointer;
-  color: white;
-  font-size: 14px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255,255,255,0.12);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.25);
 }
 
-/* HIDE RADIO */
-.gender-card input {
-  display: none;
-}
-
-/* ICON */
-.gender-icon {
-  font-size: 16px;
-}
-
-/* SMALL TICK */
-.gender-card .tick {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  margin-left: 4px;
-  transition: all 0.3s ease;
-}
-
-/* ACTIVE COMMON */
 .gender-card.active {
   transform: translateY(-2px);
   box-shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
 
-/* MALE */
-.gender-card.male.active {
-  border-color: #3b82f6;
-}
-.gender-card.male.active .tick {
-  background: #3b82f6;
-  border-color: #3b82f6;
-}
-.gender-card.male.active .gender-icon {
-  color: #3b82f6;
-}
-
-/* FEMALE */
-.gender-card.female.active {
-  border-color: #facc15;
-}
-.gender-card.female.active .tick {
-  background: #facc15;
-  border-color: #facc15;
-}
-.gender-card.female.active .gender-icon {
-  color: #facc15;
-}
-
-/* PRESS ANIMATION */
-.gender-card:active {
-  transform: scale(0.96);
-}
-
-
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+/* =========================================================
+   MOBILE SAFE AREA
+   ========================================================= */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(10px);
-  }
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-slide-up {
-  animation: slideUp 0.18s ease-out;
+.animate-fade {
+  animation: fadeIn 0.15s ease-out;
 }
 
-.animate-slide-down {
-  animation: slideDown 0.18s ease-in;
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes vanish {
-  to {
-    opacity: 0;
-    transform: scale(0.9);
-    height: 0;
-    margin: 0;
-    padding: 0;
-  }
+@keyframes fade-out {
+  0% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
-.animate-vanish {
-  animation: vanish 0.2s ease forwards;
-}
-
-@keyframes pop {
-  0% {
-    transform: scale(0.6);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.animate-pop {
-  animation: pop 0.2s ease;
+.animate-fade-out {
+  animation: fade-out 6s ease forwards;
 }

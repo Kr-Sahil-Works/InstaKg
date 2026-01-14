@@ -23,20 +23,24 @@ export const initSocket = (server) => {
   /* 🔐 AUTH VIA COOKIE */
   io.use((socket, next) => {
     try {
-      const cookies = socket.handshake.headers.cookie;
-      const token = cookie.parse(cookies || "").jwt;
+      const cookies = socket.handshake.headers.cookie || "";
+      const token = cookie.parse(cookies).jwt;
       if (!token) return next(new Error("Unauthorized"));
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       socket.userId = decoded.userId;
+
       next();
-    } catch {
+    } catch (err) {
       next(new Error("Unauthorized"));
     }
   });
 
   io.on("connection", async (socket) => {
     const userId = socket.userId;
+
+    /* 🔥 THIS WAS MISSING — REQUIRED */
+    socket.join(userId); // ✅ USER ROOM
 
     /* ✅ USER ONLINE */
     await User.findByIdAndUpdate(userId, { lastSeen: null });
@@ -58,28 +62,27 @@ export const initSocket = (server) => {
 
       if (!msg) return;
 
-      getReceiverSocketIds(msg.senderId.toString()).forEach((sid) =>
-        io.to(sid).emit("messageSeen", msg._id)
+      io.to(msg.senderId.toString()).emit(
+        "messageSeen",
+        msg._id
       );
     });
 
     /* ✍️ TYPING */
     socket.on("typing", (receiverId) => {
-      getReceiverSocketIds(receiverId).forEach((sid) =>
-        io.to(sid).emit("typing", userId)
-      );
+      io.to(receiverId).emit("typing", userId);
     });
 
     socket.on("stopTyping", (receiverId) => {
-      getReceiverSocketIds(receiverId).forEach((sid) =>
-        io.to(sid).emit("stopTyping", userId)
-      );
+      io.to(receiverId).emit("stopTyping", userId);
     });
 
     /* 🔌 DISCONNECT */
     socket.on("disconnect", async () => {
       const sockets = userSocketMap.get(userId);
       sockets?.delete(socket.id);
+
+      socket.leave(userId); // ✅ CLEANUP
 
       if (!sockets || sockets.size === 0) {
         userSocketMap.delete(userId);
@@ -94,7 +97,7 @@ export const initSocket = (server) => {
   });
 };
 
-/* ✅ THIS EXPORT WAS MISSING */
+/* ✅ KEEP THIS (used by controllers) */
 export const getReceiverSocketIds = (userId) => {
   return userSocketMap.get(userId) || new Set();
 };
