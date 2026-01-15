@@ -8,18 +8,28 @@ export default function ChatWindow({ user, socket }) {
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
   const bottomRef = useRef(null);
+  const seenSet = useRef(new Set());
   const { authUser } = useContext(AuthContext);
 
-  /* LOAD MESSAGES */
+  /* ===== ADDED: ONE-TIME CHAT OPEN SCROLL FLAG ===== */
+  useEffect(() => {
+    if (user && window.__CHAT_SCROLL_READY__ !== user._id) {
+      window.__CHAT_SCROLL_READY__ = user._id;
+      window.__ALLOW_AUTOSCROLL__ = true;
+    }
+  }, [user]);
+
+  /* ================= LOAD MESSAGES ================= */
   useEffect(() => {
     if (!user) return;
 
     api.get(`/messages/${user._id}`).then((res) => {
       setMessages(res.data || []);
+      seenSet.current.clear();
     });
   }, [user]);
 
-  /* SOCKET EVENTS */
+  /* ================= SOCKET EVENTS ================= */
   useEffect(() => {
     if (!socket || !user) return;
 
@@ -81,25 +91,50 @@ export default function ChatWindow({ user, socket }) {
     };
   }, [socket, user]);
 
-  /* MARK SEEN */
+  /* ================= DELIVERED ACK ================= */
+  useEffect(() => {
+    if (!socket || !user) return;
+
+    socket.on("deliverMessage", ({ messageId, senderId }) => {
+      socket.emit("messageDelivered", { messageId, senderId });
+    });
+
+    socket.on("messageDelivered", (id) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === id ? { ...m, delivered: true } : m
+        )
+      );
+    });
+
+    return () => {
+      socket.off("deliverMessage");
+      socket.off("messageDelivered");
+    };
+  }, [socket, user]);
+
+  /* ================= MARK SEEN ================= */
   useEffect(() => {
     if (!user || !authUser) return;
 
     messages.forEach((m) => {
       if (
         !m.seen &&
-        m.receiverId === authUser._id
+        m.receiverId === authUser._id &&
+        !seenSet.current.has(m._id)
       ) {
-        api.put(`/messages/seen/${m._id}`);
+        seenSet.current.add(m._id);
+        api.put(`/messages/seen/${m._id}`).catch(() => {});
       }
     });
   }, [messages, user, authUser]);
 
-  /* AUTO SCROLL */
+  /* ================= AUTO SCROLL ================= */
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
+    if (window.__ALLOW_AUTOSCROLL__ === true) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      window.__ALLOW_AUTOSCROLL__ = false; // 🔒 lock after first scroll
+    }
   }, [messages, typing]);
 
   if (!user) {
@@ -112,8 +147,8 @@ export default function ChatWindow({ user, socket }) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* MESSAGES AREA – BIGGER ON MOBILE */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 md:py-3">
+      {/* MESSAGES */}
+      <div className="flex-1 overflow-y-auto isolate px-4 py-4 md:py-3">
         {messages.map((msg) => (
           <Message key={msg._id} msg={msg} />
         ))}

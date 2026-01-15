@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import ChatWindow from "../components/ChatWindow";
 import ThemeToggle from "../components/ThemeToggle";
@@ -18,6 +18,8 @@ export default function Chat() {
   const { authUser, loading } = useContext(AuthContext);
   const { socket, onlineUsers = [] } = useSocket();
 
+  const lastFetchedUser = useRef(null);
+
   if (loading || !authUser) return null;
 
   const isOnline =
@@ -30,15 +32,22 @@ export default function Chat() {
     }
   }, [selectedUser]);
 
+  /* LAST SEEN (SAFE + NO SPAM) */
   useEffect(() => {
     if (!selectedUser || isOnline) {
       setLastSeen(null);
+      lastFetchedUser.current = null;
       return;
     }
 
+    if (lastFetchedUser.current === selectedUser._id) return;
+
+    lastFetchedUser.current = selectedUser._id;
+
     api
       .get(`/users/${selectedUser._id}/last-seen`)
-      .then(res => setLastSeen(res.data.lastSeen));
+      .then((res) => setLastSeen(res.data.lastSeen))
+      .catch(() => {});
   }, [selectedUser, isOnline]);
 
   return (
@@ -85,10 +94,17 @@ export default function Chat() {
           </div>
 
           <div className="flex items-center gap-3">
-            <HiStatusOnline className="text-green-500" size={16} />
+            {selectedUser && isOnline && (
+              <HiStatusOnline
+                className="text-green-500"
+                size={16}
+              />
+            )}
+
             <span className="hidden sm:block">
               {authUser.username}
             </span>
+
             <ThemeToggle />
             <LogoutButton />
           </div>
@@ -96,7 +112,12 @@ export default function Chat() {
 
         {/* CHAT WINDOW */}
         <div className="flex-1 overflow-hidden">
-          <ChatWindow user={selectedUser} socket={socket} />
+          {selectedUser && (
+            <ChatWindow
+              user={selectedUser}
+              socket={socket}
+            />
+          )}
         </div>
       </section>
     </div>

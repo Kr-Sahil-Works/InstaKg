@@ -293,3 +293,94 @@ body {
 .animate-fade-out {
   animation: fade-out 6s ease forwards;
 }
+
+@keyframes pop {
+  0% { transform: scale(0.7); opacity: 0 }
+  100% { transform: scale(1); opacity: 1 }
+}
+
+.animate-seen {
+  animation: pop 0.2s ease-out;
+}
+
+@keyframes seenPop {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-seen-pop {
+  animation: seenPop 0.18s ease-out;
+}
+
+
+.line-clamp-12 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 12;
+
+  /* ✅ standard property (for VS Code + future browsers) */
+  line-clamp: 12;
+
+  overflow: hidden;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+
+
+
+@keyframes heart-pop {
+  0% { transform: scale(0.4) translateY(10px); opacity: 0; }
+  50% { transform: scale(1.2) translateY(-6px); opacity: 1; }
+  100% { transform: scale(1) translateY(-14px); opacity: 0; }
+}
+
+.animate-heart-pop {
+  animation: heart-pop 0.7s ease-out forwards;
+}
+
+@keyframes smokeVanish {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(12px);
+    transform: scale(0.9) translateY(-6px);
+  }
+}
+
+.animate-smoke-vanish {
+  animation: smokeVanish 0.35s ease forwards;
+}
+
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0 }
+  to { transform: translateY(0); opacity: 1 }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0 }
+  to { transform: scale(1); opacity: 1 }
+}
+
+@keyframes fade {
+  from { opacity: 0 }
+  to { opacity: 1 }
+}
+
+.animate-slide-up { animation: slideUp 0.18s ease-out }
+.animate-scale { animation: scaleIn 0.15s ease-out }
+.animate-fade { animation: fade 0.15s ease-out }
+
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0 }
+  to { transform: translateY(0); opacity: 1 }
+}
+.animate-slide-up {
+  animation: slideUp .18s ease-out;
+}

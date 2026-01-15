@@ -2,54 +2,52 @@ import { useContext, useRef, useState, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import ForwardDialog from "./ForwardDialog";
 import api from "../api/axios";
-import { FiEdit2, FiTrash2, FiX, FiSend } from "react-icons/fi";
+import {
+  FiEdit2,
+  FiTrash2,
+  FiX,
+  FiSend,
+  FiCornerUpLeft,
+  FiInfo,
+} from "react-icons/fi";
 
-const EDIT_LIMIT = 10 * 60 * 1000;
+/* ================= EDIT DIALOG ================= */
+function EditDialog({ value, onCancel, onSave }) {
+  const [text, setText] = useState(value);
 
-// ✅ FIX: DEFINE ONCE
-const REACTION_EMOJIS = ["❤️", "😂", "😮", "😢", "🔥", "👍"];
-
-/* ================= EDIT DIALOG (INLINE – NOTHING MISSING) ================= */
-function EditDialog({ editText, setEditText, onCancel, onSave }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onCancel}
-      />
-
-      <div className="relative w-[90%] max-w-sm rounded-2xl bg-background p-4 shadow-2xl animate-scale">
-        <button
+    <div className="fixed inset-0 z-9999 isolate">
+      <div className="fixed inset-0 flex items-center justify-center">
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           onClick={onCancel}
-          className="absolute top-3 right-3 p-1 rounded-full hover:bg-black/10"
-        >
-          <FiX />
-        </button>
-
-        <h3 className="text-sm font-semibold mb-2">Edit message</h3>
-
-        <textarea
-          value={editText}
-          onChange={(e) => setEditText(e.target.value)}
-          rows={3}
-          className="w-full resize-none rounded-xl bg-muted px-3 py-2 outline-none"
-          autoFocus
         />
-
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            onClick={onCancel}
-            className="px-4 py-1.5 text-sm rounded-lg bg-black/10"
-          >
-            Cancel
+        <div className="relative w-[90%] max-w-sm rounded-2xl bg-background p-4 shadow-2xl">
+          <button onClick={onCancel} className="absolute top-3 right-3">
+            <FiX />
           </button>
-
-          <button
-            onClick={onSave}
-            className="px-4 py-1.5 text-sm rounded-lg bg-green-600 text-white"
-          >
-            Save
-          </button>
+          <h3 className="text-sm font-semibold mb-2">Edit message</h3>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={3}
+            className="w-full resize-none rounded-xl bg-muted px-3 py-2 outline-none"
+            autoFocus
+          />
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              onClick={onCancel}
+              className="px-4 py-1.5 rounded-lg bg-black/10"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onSave(text)}
+              className="px-4 py-1.5 rounded-lg bg-blue-600 text-white"
+            >
+              Save
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -58,231 +56,280 @@ function EditDialog({ editText, setEditText, onCancel, onSave }) {
 
 /* ================= MESSAGE ================= */
 export default function Message({ msg }) {
+  if (!msg) return null;
+
   const { authUser } = useContext(AuthContext);
   const mine = String(msg.senderId) === String(authUser?._id);
 
-  const time = new Date(msg.createdAt).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  const tapCount = useRef(0);
-  const tapTimer = useRef(null);
-  const boxRef = useRef(null);
+  const rootRef = useRef(null);
+  const pressTimer = useRef(null);
+  const longPressed = useRef(false);
 
   const [showMenu, setShowMenu] = useState(false);
-  const [menuClosing, setMenuClosing] = useState(false);
+  const [selected, setSelected] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [editText, setEditText] = useState(msg.message);
-  const [localText, setLocalText] = useState(msg.message);
-  const [vanish, setVanish] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
+
+  const [text, setText] = useState(msg.message);
   const [reactions, setReactions] = useState(msg.reactions || []);
   const [forwardOpen, setForwardOpen] = useState(false);
 
+  /* ===== ADDED: DELETE STATE ===== */
+  const [deleting, setDeleting] = useState(false);
+
+  /* ===== ADDED: COLLAPSE AFTER DELETE ===== */
+  const [collapsed, setCollapsed] = useState(false);
+
+  /* ===== ADDED: ONE-TIME AUTOSCROLL FLAG ===== */
   useEffect(() => {
-    setLocalText(msg.message);
-    setEditText(msg.message);
-    setReactions(msg.reactions || []);
-  }, [msg.message, msg.reactions]);
+    if (window.__CHAT_OPENED__ !== true) {
+      window.__CHAT_OPENED__ = true;
+      window.__ALLOW_AUTOSCROLL__ = true;
+    }
+  }, []);
 
-  const canEdit =
-    mine &&
-    Date.now() - new Date(msg.createdAt).getTime() <= EDIT_LIMIT;
+  /* ================= GLOBAL DESELECT ================= */
+  useEffect(() => {
+    const handleDeselect = (e) => {
+      if (e.detail !== msg._id) {
+        setSelected(false);
+        setShowMenu(false);
+        setInfoOpen(false);
+      }
+    };
+    window.addEventListener("message-deselect", handleDeselect);
+    return () =>
+      window.removeEventListener("message-deselect", handleDeselect);
+  }, [msg._id]);
 
-  /* ================= TAP HANDLER ================= */
-  const handleTap = (e) => {
+  /* ===== LONG PRESS ===== */
+  const startPress = () => {
+    window.__ALLOW_AUTOSCROLL__ = false;
+    longPressed.current = false;
+    pressTimer.current = setTimeout(() => {
+      longPressed.current = true;
+      window.__ACTIVE_MESSAGE__ = msg._id;
+      window.dispatchEvent(
+        new CustomEvent("message-deselect", { detail: msg._id })
+      );
+      setSelected(true);
+      setShowMenu(true);
+    }, 450);
+  };
+
+  const endPress = () => clearTimeout(pressTimer.current);
+
+  /* ===== ONE TAP ===== */
+  const handleClick = (e) => {
+    window.__ALLOW_AUTOSCROLL__ = false;
     e.stopPropagation();
 
-    tapCount.current += 1;
-    clearTimeout(tapTimer.current);
+    if (
+      window.__ACTIVE_MESSAGE__ &&
+      window.__ACTIVE_MESSAGE__ !== msg._id
+    ) {
+      window.__ACTIVE_MESSAGE__ = msg._id;
+      window.dispatchEvent(
+        new CustomEvent("message-deselect", { detail: msg._id })
+      );
+      setSelected(true);
+      setShowMenu(true);
+      return;
+    }
 
-    tapTimer.current = setTimeout(() => {
-      if (tapCount.current === 2) toggleReaction("❤️");
-      if (tapCount.current === 3 && mine) {
-        setShowMenu(true);
-        setMenuClosing(false);
-      }
-      tapCount.current = 0;
-    }, 300);
+    if (longPressed.current) return;
+    react("❤️");
   };
 
-  /* ================= OUTSIDE CLICK ================= */
-  useEffect(() => {
-    if (!showMenu) return;
+  /* ===== REACT ===== */
+  const react = async (emoji) => {
+    window.__ALLOW_AUTOSCROLL__ = false;
+    const res = await api.put(`/messages/react/${msg._id}`, { emoji });
+    setReactions(res.data.reactions || []);
+  };
 
-    const close = (e) => {
-      if (!boxRef.current?.contains(e.target)) closeMenu();
-    };
-
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, [showMenu]);
-
-  const closeMenu = () => {
-    setMenuClosing(true);
+  /* ===== ADDED: DELETE HANDLER ===== */
+  const handleDelete = async () => {
+    setDeleting(true);
     setTimeout(() => {
-      setShowMenu(false);
-      setMenuClosing(false);
-    }, 160);
-  };
+      setCollapsed(true); // remove gap immediately
+    }, 350);
 
-  /* ================= API ================= */
-  const toggleReaction = async (emoji) => {
-    try {
-      const res = await api.put(`/messages/react/${msg._id}`, { emoji });
-      setReactions(res.data.reactions || []);
-    } catch {}
-  };
-
-  const deleteMsg = async () => {
-    setVanish(true);
     setTimeout(async () => {
-      try {
-        await api.delete(`/messages/delete/${msg._id}`);
-      } catch {}
-    }, 220);
+      await api.delete(`/messages/${msg._id}`);
+      window.dispatchEvent(
+        new CustomEvent("message-deselect", { detail: null })
+      );
+    }, 360);
   };
 
-  const saveEdit = async () => {
-    const text = editText.trim();
-    if (!text) return;
-
-    setLocalText(text);
-
-    try {
-      await api.put(`/messages/edit/${msg._id}`, { message: text });
-    } catch {}
-
-    setEditing(false);
-    closeMenu();
-  };
-
-  /* ================= RENDER ================= */
   return (
     <>
-      {showMenu && <div className="fixed inset-0 bg-black/25 z-40" />}
+      {(showMenu || selected) && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30"
+          onClick={() => {
+            setShowMenu(false);
+            setSelected(false);
+            setInfoOpen(false);
+            window.__ACTIVE_MESSAGE__ = null;
+          }}
+        />
+      )}
 
-      <div
-        className={`relative flex my-2 ${
-          mine ? "justify-end" : "justify-start"
-        } ${vanish ? "animate-vanish" : ""}`}
-      >
-        <div className="relative max-w-[70%]">
+      {!collapsed && (
+        <div
+          ref={rootRef}
+          onAnimationEnd={() => {
+            if (deleting) setCollapsed(true);
+          }}
+          className={`flex my-1.5 ${mine ? "justify-end" : "justify-start"} ${
+            deleting ? "animate-smoke-vanish" : ""
+          }`}
+        >
           <div
-            ref={boxRef}
-            onClick={handleTap}
-            className={`relative px-3 py-2 text-sm rounded-lg z-50 select-none ${
-              mine ? "msg-out rounded-br-none" : "msg-in rounded-bl-none"
-            }`}
+            className="relative max-w-[70%] z-50"
+            style={{
+              marginBottom: reactions.length > 0 ? "16px" : undefined,
+            }}
           >
-            {msg.forwarded && (
-              <p className="text-[10px] opacity-60 mb-1">Forwarded</p>
-            )}
+            <div className="relative">
+              <div
+                onMouseDown={startPress}
+                onMouseUp={endPress}
+                onTouchStart={startPress}
+                onTouchEnd={endPress}
+                onClick={handleClick}
+                className={`px-3 py-2 rounded-2xl text-[13px] line-clamp-12 ${
+                  mine ? "msg-out" : "msg-in"
+                } ${
+                  selected
+                    ? "ring-2 ring-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.9)]"
+                    : ""
+                }`}
+              >
+                {text}
 
-            <p className="break-words leading-relaxed">{localText}</p>
+                <div className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-70">
+                  <span>
+                    {new Date(msg.createdAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
 
-            <div className="flex items-center gap-1 mt-1 text-[10px] opacity-80 justify-end">
-              <span>{time}</span>
+                  {mine && msg.delivered && !msg.seen && (
+                    <span className="text-gray-400">✔✔</span>
+                  )}
 
-              {msg.edited && (
-                <span className="italic text-gray-400">edited</span>
-              )}
+                  {mine && msg.seen && (
+                    <span className="text-blue-500">✔✔</span>
+                  )}
+                </div>
+              </div>
 
-              {/* ✅ BLUE TICKS RESTORED */}
-              {mine && (
-                <svg
-                  viewBox="0 0 18 18"
-                  className={`w-4 h-4 ${
-                    msg.seen ? "text-sky-500" : "text-gray-400"
-                  }`}
-                  fill="currentColor"
-                >
-                  <path d="M6.5 12.5L2 8l1.4-1.4 3.1 3.1L13.6 2.6 15 4z" />
-                  <path d="M11.5 12.5L7 8l1.4-1.4 3.1 3.1L18.6 2.6 20 4z" />
-                </svg>
+              {reactions.length > 0 && (
+                <div className="absolute -bottom-3 right-1 z-[100000] bg-background px-1 rounded-full text-sm shadow">
+                  {reactions.map((r, i) => (
+                    <span key={i}>{r.emoji}</span>
+                  ))}
+                </div>
               )}
             </div>
 
-            {showMenu && mine && (
-              <>
-                {/* EMOJI PICKER */}
-                <div className="absolute -top-12 right-0 z-50 animate-pop bg-background rounded-full shadow px-2 py-1 flex gap-2">
-                  {REACTION_EMOJIS.map((e) => (
-                    <button
-                      key={e}
-                      onClick={() => toggleReaction(e)}
-                      className="text-lg hover:scale-125 transition"
-                    >
-                      {e}
-                    </button>
-                  ))}
-                </div>
+            {/* EMOJI BAR */}
+            {showMenu && (
+              <div
+                className={`absolute -top-12 ${
+                  mine ? "right-0" : "left-0"
+                } z-[100000] bg-black/80 backdrop-blur px-2 py-1 rounded-full flex gap-2 animate-scale`}
+              >
+                {["❤️", "👍", "😂", "😮", "😢", "😡"].map((e) => (
+                  <button key={e} onClick={() => react(e)} className="text-lg">
+                    {e}
+                  </button>
+                ))}
+              </div>
+            )}
 
-                {/* MENU */}
-                <div
-                  className={`mt-2 flex gap-2 justify-end text-xs ${
-                    menuClosing ? "animate-slide-down" : "animate-slide-up"
-                  }`}
+            {/* MENU */}
+            {showMenu && (
+              <div
+                className={`absolute ${
+                  mine ? "right-0" : "left-0"
+                } mt-2 w-40 rounded-xl bg-background shadow-lg text-xs overflow-hidden z-[100000]`}
+              >
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2"
+                  onClick={() => {
+                    setShowMenu(false);
+                    setSelected(false);
+                    window.__ACTIVE_MESSAGE__ = null;
+                  }}
                 >
-                  <button onClick={closeMenu} className="p-1 rounded bg-black/10">
-                    <FiX />
-                  </button>
+                  <FiX /> Close
+                </button>
 
-                  {canEdit && (
-                    <button
-                      onClick={() => setEditing(true)}
-                      className="px-2 py-1 rounded bg-black/10"
-                    >
-                      <FiEdit2 /> Edit
-                    </button>
-                  )}
-
+                {mine && (
                   <button
-                    onClick={() => {
-                      setForwardOpen(true);
-                      closeMenu();
-                    }}
-                    className="px-2 py-1 rounded bg-blue-500/10 text-blue-500"
+                    className="w-full flex items-center gap-2 px-3 py-2"
+                    onClick={() => setEditing(true)}
                   >
-                    <FiSend /> Forward
+                    <FiEdit2 /> Edit
                   </button>
+                )}
 
+                {/* ADDED BACK: INFO */}
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2"
+                  onClick={() => setInfoOpen((v) => !v)}
+                >
+                  <FiInfo /> Info
+                </button>
+
+                {mine && (
                   <button
-                    onClick={deleteMsg}
-                    className="px-2 py-1 rounded bg-red-500/10 text-red-500"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-red-500"
+                    onClick={handleDelete}
                   >
                     <FiTrash2 /> Delete
                   </button>
-                </div>
-              </>
+                )}
+
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2"
+                  onClick={() => setForwardOpen(true)}
+                >
+                  <FiSend /> Forward
+                </button>
+              </div>
+            )}
+
+            {infoOpen && (
+              <div className="absolute right-0 mt-2 p-3 rounded-lg bg-background text-xs shadow z-[100000]">
+                Sent at {new Date(msg.createdAt).toLocaleString()}
+              </div>
             )}
           </div>
-
-          {reactions.length > 0 && (
-            <div className="absolute -bottom-4 right-1 flex gap-1 text-sm z-[999] animate-pop">
-              {reactions.map((r, i) => (
-                <span key={i}>{r.emoji}</span>
-              ))}
-            </div>
-          )}
         </div>
-      </div>
+      )}
 
       {editing && (
         <EditDialog
-          editText={editText}
-          setEditText={setEditText}
+          value={text}
           onCancel={() => setEditing(false)}
-          onSave={saveEdit}
+          onSave={(t) => {}}
         />
       )}
 
       {forwardOpen && (
-        <ForwardDialog
-          open={forwardOpen}
-          messageId={msg._id}
-          onClose={() => setForwardOpen(false)}
-        />
+        <div className="fixed inset-0 z-9999 isolate">
+          <ForwardDialog
+            open={forwardOpen}
+            message={msg}
+            onClose={() => setForwardOpen(false)}
+          />
+        </div>
       )}
     </>
   );

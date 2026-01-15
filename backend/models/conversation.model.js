@@ -6,6 +6,10 @@ const conversationSchema = new mongoose.Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
       required: true,
+      validate: {
+        validator: (v) => Array.isArray(v) && v.length === 2,
+        message: "Conversation must have exactly 2 participants",
+      },
     },
     messages: [
       {
@@ -18,11 +22,11 @@ const conversationSchema = new mongoose.Schema(
 );
 
 /*
-  ✅ Unique PAIR, not individual element
-  Order matters → we always SORT before saving
+  ✅ UNIQUE USER PAIR (ORDERED)
+  participants[0] + participants[1]
 */
 conversationSchema.index(
-  { participants: 1 },
+  { "participants.0": 1, "participants.1": 1 },
   { unique: true }
 );
 

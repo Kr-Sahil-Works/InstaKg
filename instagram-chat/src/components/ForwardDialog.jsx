@@ -1,17 +1,17 @@
 import { useEffect, useState, useContext } from "react";
 import api from "../api/axios";
 import Avatar from "./Avatar";
-import { FiX, FiSend, FiSearch } from "react-icons/fi";
+import { FiSearch } from "react-icons/fi";
 import { AuthContext } from "../context/AuthContext";
+import { useSocket } from "../hooks/useSocket";
 
 export default function ForwardDialog({
   open,
-  messageId,
-  originalSenderId,
-  originalReceiverId,
+  message,
   onClose,
 }) {
   const { authUser } = useContext(AuthContext);
+  const { socket } = useSocket();
 
   const [users, setUsers] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -27,6 +27,12 @@ export default function ForwardDialog({
     });
   }, [open]);
 
+  /* ================= SAFETY ================= */
+  if (!message || !message.message) {
+    console.error("ForwardDialog: message missing", message);
+    return null;
+  }
+
   /* ================= TOGGLE USER ================= */
   const toggleUser = (id) => {
     setSelected((prev) =>
@@ -37,42 +43,52 @@ export default function ForwardDialog({
   };
 
   /* ================= SEND FORWARD ================= */
-  const send = async () => {
-    if (!selected.length || sending) return;
+ const send = async () => {
+  if (!selected.length || sending) return;
 
-    try {
-      setSending(true);
+  // ✅ SAFE TEXT EXTRACTION
+  const text =
+    typeof message?.message === "string"
+      ? message.message.trim()
+      : "";
 
-      await api.post(`/messages/forward/${messageId}`, {
-        receivers: selected,
-      });
+  // 🚫 BLOCK EMPTY FORWARD (IMPORTANT)
+  if (!text) {
+    console.warn("FORWARD BLOCKED: Empty or non-text message", message);
+    return;
+  }
 
-      setSelected([]);
-      onClose();
-    } catch (err) {
-      console.error(
-        "FORWARD FAILED",
-        err.response?.data || err
-      );
-    } finally {
-      setSending(false);
-    }
-  };
+  try {
+    setSending(true);
 
-  if (!open) return null;
+    const res = await api.post("/messages/forward", {
+      receivers: selected,
+      text,
+    });
+
+    res.data.forEach((msg) => {
+      socket?.emit("newMessage", msg);
+    });
+
+    setSelected([]);
+    onClose();
+  } catch (err) {
+    console.error(
+      "FORWARD FAILED",
+      err.response?.data || err
+    );
+  } finally {
+    setSending(false);
+  }
+};
+
+
 
   /* ================= FILTER USERS ================= */
   const filtered = users
-    .filter(
-      (u) =>
-        u._id !== authUser._id &&           // ❌ yourself
-        u._id !== originalSenderId &&       // ❌ original sender
-        u._id !== originalReceiverId        // ❌ original receiver
-    )
+    .filter((u) => u._id !== authUser._id)
     .filter((u) =>
-      u.username
-        .toLowerCase()
-        .includes(search.toLowerCase())
+      u.username.toLowerCase().includes(search.toLowerCase())
     );
 
   /* ================= UI ================= */
@@ -104,7 +120,7 @@ export default function ForwardDialog({
             disabled={!selected.length || sending}
             className="text-sm text-green-600 disabled:opacity-40"
           >
-            Send
+            {sending ? "Sending…" : "Send"}
           </button>
         </div>
 
@@ -133,9 +149,7 @@ export default function ForwardDialog({
             <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
             <input
               value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search"
               className="w-full pl-9 pr-3 py-2 rounded-full bg-black/10 text-sm outline-none"
             />
@@ -153,9 +167,7 @@ export default function ForwardDialog({
               <Avatar name={user.username} size={40} />
 
               <div className="flex-1">
-                <p className="text-sm">
-                  {user.username}
-                </p>
+                <p className="text-sm">{user.username}</p>
               </div>
 
               <input
