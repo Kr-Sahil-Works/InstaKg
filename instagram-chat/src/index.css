@@ -466,3 +466,8 @@ body {
 .animate-send-fly {
   animation: send-fly 0.35s ease-in forwards;
 }
+
+.handwritten {
+  font-family: "Comic Sans MS", "Segoe Script", "Bradley Hand", cursive;
+  letter-spacing: 0.4px;
+}

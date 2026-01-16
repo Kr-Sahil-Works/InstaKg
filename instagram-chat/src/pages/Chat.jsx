@@ -10,7 +10,6 @@ import { HiStatusOnline } from "react-icons/hi";
 import api from "../api/axios";
 import { formatLastSeen } from "../utils/formatLastSeen";
 
-// ➕ ADD
 import { motion, AnimatePresence } from "framer-motion";
 import { FiArrowLeft } from "react-icons/fi";
 
@@ -19,7 +18,6 @@ export default function Chat() {
   const [open, setOpen] = useState(false);
   const [lastSeen, setLastSeen] = useState(null);
 
-  // ➕ ADD — keyboard-aware height
   const [viewportHeight, setViewportHeight] = useState(
     typeof window !== "undefined" ? window.innerHeight : 0
   );
@@ -34,14 +32,12 @@ export default function Chat() {
   const isOnline =
     selectedUser && onlineUsers.includes(selectedUser._id);
 
-  /* HIDE SIDEBAR ON MOBILE WHEN CHAT SELECTED */
   useEffect(() => {
     if (selectedUser) {
       setOpen(false);
     }
   }, [selectedUser]);
 
-  /* LAST SEEN (SAFE + NO SPAM) */
   useEffect(() => {
     if (!selectedUser || isOnline) {
       setLastSeen(null);
@@ -59,7 +55,6 @@ export default function Chat() {
       .catch(() => {});
   }, [selectedUser, isOnline]);
 
-  /* ➕ ADD — VISUAL VIEWPORT (KEYBOARD DETECTION) */
   useEffect(() => {
     if (!window.visualViewport) return;
 
@@ -75,12 +70,8 @@ export default function Chat() {
   return (
     <div
       className="h-screen flex overflow-hidden"
-      // ➕ ADD — real mobile keyboard handling
-      style={{
-        height: viewportHeight,
-      }}
+      style={{ height: viewportHeight }}
     >
-      {/* SIDEBAR */}
       <Sidebar
         setSelectedUser={setSelectedUser}
         onlineUsers={onlineUsers}
@@ -88,9 +79,8 @@ export default function Chat() {
         setOpen={setOpen}
       />
 
-      {/* CHAT AREA */}
       <section className="flex flex-col flex-1 overflow-hidden">
-        {/* HEADER (FIXED) */}
+        {/* HEADER */}
         <div className="shrink-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b sticky top-0 z-20">
           <div className="flex items-center gap-3">
             <button
@@ -100,7 +90,6 @@ export default function Chat() {
               ☰
             </button>
 
-            {/* BACK BUTTON */}
             <AnimatePresence>
               {selectedUser && (
                 <motion.button
@@ -110,7 +99,7 @@ export default function Chat() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   whileTap={{ scale: 0.88 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  transition={{ duration: 0.18 }}
                   onClick={() => {
                     setSelectedUser(null);
                     setOpen(true);
@@ -130,41 +119,117 @@ export default function Chat() {
                     {selectedUser.username}
                   </span>
                   <div className="text-xs text-gray-400">
-                    {isOnline
-                      ? "online"
-                      : formatLastSeen(lastSeen)}
+                    {isOnline ? "online" : formatLastSeen(lastSeen)}
                   </div>
                 </div>
               </>
             ) : (
-              <span className="font-medium text-lg">
-                Messages
-              </span>
+              <AnimatePresence>
+  <motion.div
+  key="me"
+  className="
+    relative
+    flex items-center justify-center
+    px-6 py-1.5
+    rounded-full
+    bg-pink-500/10
+    backdrop-blur-md
+    overflow-hidden
+    min-w-40
+    cursor-pointer
+  "
+>
+
+    {/* USERNAME — SOLID PLATFORM */}
+    <motion.span
+      className="
+        relative z-10
+        text-[15px]
+        font-semibold
+        text-pink-100
+        handwritten
+      "
+     animate={{
+  y: [0, 0, 6, -2, 0],
+  scale: [1, 1, 0.92, 1.04, 1],
+}}
+
+      transition={{
+        duration: 6,
+        repeat: Infinity,
+        ease: "easeInOut",
+        times: [0, 0.5, 0.6, 0.7, 1],
+      }}
+    >
+      {authUser.username}
+    </motion.span>
+
+    {/* FLOATING LOVE HEARTS */}
+    {["💖", "💗", "💞"].map((h, i) => (
+      <motion.span
+        key={i}
+        className="absolute text-sm z-20"
+        style={{
+          left: `${38 + i * 12}%`,
+          bottom: "52%",
+        }}
+        animate={{
+          y: [0, -14, 0],
+          rotate: [-4, 4, -4],
+        }}
+        transition={{
+          duration: 1.2,
+          repeat: Infinity,
+          delay: i * 0.2,
+          ease: "easeInOut",
+        }}
+      >
+        {h}
+      </motion.span>
+    ))}
+
+    {/* BIG ROMANTIC HEART — CRUSH */}
+    <motion.span
+      className="
+        absolute
+        text-5xl
+        z-30
+        drop-shadow-[0_0_18px_rgba(255,105,180,0.9)]
+      "
+      initial={{ y: -80, scale: 0 }}
+      animate={{
+        y: [-80, 0, 0, 40],
+        scale: [0, 1.15, 1.35, 0],
+        opacity: [0, 1, 1, 0],
+      }}
+      transition={{
+        duration: 6,
+        repeat: Infinity,
+        ease: "easeInOut",
+        times: [0, 0.48, 0.6, 1],
+      }}
+    >
+      ❤️
+    </motion.span>
+  </motion.div>
+</AnimatePresence>
+
             )}
           </div>
 
           <div className="flex items-center gap-3">
             {selectedUser && isOnline && (
-              <HiStatusOnline
-                className="text-green-500"
-                size={16}
-              />
+              <HiStatusOnline className="text-green-500" size={16} />
             )}
-
-            <span className="hidden sm:block">
-              {authUser.username}
-            </span>
 
             <ThemeToggle />
             <LogoutButton />
           </div>
         </div>
 
-        {/* CHAT WINDOW — RESIZES WITH KEYBOARD */}
         <motion.div
           className="flex-1 overflow-hidden min-h-0"
           drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.15}
           onDragEnd={(e, info) => {
             if (info.offset.x > 120 && selectedUser) {
@@ -173,16 +238,10 @@ export default function Chat() {
             }
           }}
         >
-          {selectedUser && (
-            <ChatWindow
-              user={selectedUser}
-              socket={socket}
-            />
-          )}
+          <ChatWindow user={selectedUser} socket={socket} />
         </motion.div>
       </section>
 
-      {/* RIPPLE STYLE (UNCHANGED) */}
       <style>
         {`
         .back-btn:active .ripple {
@@ -194,14 +253,9 @@ export default function Chat() {
           inset: 0;
           background: radial-gradient(circle, rgba(255,255,255,0.35) 10%, transparent 10%);
           transform: scale(0);
-          pointer-events: none;
         }
 
         @keyframes ripple {
-          from {
-            transform: scale(0);
-            opacity: 0.6;
-          }
           to {
             transform: scale(2.5);
             opacity: 0;
