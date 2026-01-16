@@ -7,11 +7,19 @@ import { AuthContext } from "../context/AuthContext";
 export default function ChatWindow({ user, socket }) {
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [showJump, setShowJump] = useState(false);
+
+  const listRef = useRef(null);
   const bottomRef = useRef(null);
   const seenSet = useRef(new Set());
+
   const { authUser } = useContext(AuthContext);
 
-  /* ===== ADDED: ONE-TIME CHAT OPEN SCROLL FLAG ===== */
+  /* ================= INITIAL AUTO SCROLL ================= */
   useEffect(() => {
     if (user && window.__CHAT_SCROLL_READY__ !== user._id) {
       window.__CHAT_SCROLL_READY__ = user._id;
@@ -26,92 +34,54 @@ export default function ChatWindow({ user, socket }) {
     api.get(`/messages/${user._id}`).then((res) => {
       setMessages(res.data || []);
       seenSet.current.clear();
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "auto" });
+      }, 0);
     });
   }, [user]);
 
-  /* ================= SOCKET EVENTS ================= */
+  /* ================= SOCKET ================= */
   useEffect(() => {
     if (!socket || !user) return;
 
-    const onNewMessage = (msg) => {
-      if (
-        msg.senderId === user._id ||
-        msg.receiverId === user._id
-      ) {
-        setMessages((prev) => [...prev, msg]);
+   const onNewMessage = (msg) => {
+  if (
+    msg.senderId === user._id ||
+    msg.receiverId === user._id
+  ) {
+    if (isAtBottom) {
+      window.__ALLOW_AUTOSCROLL__ = true;
+    } else {
+      setShowJump(true);
+      if (msg.senderId === user._id) {
+        setUnreadCount((c) => c + 1);
       }
-    };
+    }
+    setMessages((prev) => [...prev, msg]);
+  }
+};
 
-    const onEdited = (updated) => {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m._id === updated._id ? updated : m
-        )
-      );
-    };
-
-    const onDeleted = (id) => {
-      setMessages((prev) =>
-        prev.filter((m) => m._id !== id)
-      );
-    };
-
-    const onSeen = (id) => {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m._id === id ? { ...m, seen: true } : m
-        )
-      );
-    };
-
-    const onReaction = (updated) => {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m._id === updated._id ? updated : m
-        )
-      );
-    };
+    socket.on("messageEdited", (updatedMsg) => {
+  setMessages((prev) =>
+    prev.map((m) =>
+      m._id === updatedMsg._id
+        ? { ...m, message: updatedMsg.message, edited: true }
+        : m
+    )
+  );
+});
 
     socket.on("newMessage", onNewMessage);
-    socket.on("messageEdited", onEdited);
-    socket.on("messageDeleted", onDeleted);
-    socket.on("messageSeen", onSeen);
-    socket.on("reactionUpdated", onReaction);
     socket.on("typing", () => setTyping(true));
     socket.on("stopTyping", () => setTyping(false));
 
     return () => {
       socket.off("newMessage", onNewMessage);
-      socket.off("messageEdited", onEdited);
-      socket.off("messageDeleted", onDeleted);
-      socket.off("messageSeen", onSeen);
-      socket.off("reactionUpdated", onReaction);
       socket.off("typing");
+       socket.off("messageEdited");
       socket.off("stopTyping");
     };
-  }, [socket, user]);
-
-  /* ================= DELIVERED ACK ================= */
-  useEffect(() => {
-    if (!socket || !user) return;
-
-    socket.on("deliverMessage", ({ messageId, senderId }) => {
-      socket.emit("messageDelivered", { messageId, senderId });
-    });
-
-    socket.on("messageDelivered", (id) => {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m._id === id ? { ...m, delivered: true } : m
-        )
-      );
-    });
-
-    return () => {
-      socket.off("deliverMessage");
-      socket.off("messageDelivered");
-    };
-  }, [socket, user]);
+  }, [socket, user, isAtBottom]);
 
   /* ================= MARK SEEN ================= */
   useEffect(() => {
@@ -133,9 +103,27 @@ export default function ChatWindow({ user, socket }) {
   useEffect(() => {
     if (window.__ALLOW_AUTOSCROLL__ === true) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-      window.__ALLOW_AUTOSCROLL__ = false; // 🔒 lock after first scroll
+      window.__ALLOW_AUTOSCROLL__ = false;
     }
   }, [messages, typing]);
+
+  /* ================= SCROLL DETECTOR ================= */
+  const handleScroll = () => {
+    const el = listRef.current;
+    if (!el) return;
+
+    const threshold = 80;
+    const atBottom =
+      el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+
+   setIsAtBottom(atBottom);
+setShowJump(!atBottom);
+
+if (atBottom) {
+  setUnreadCount(0);
+}
+
+  };
 
   if (!user) {
     return (
@@ -146,9 +134,13 @@ export default function ChatWindow({ user, socket }) {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden min-h-0">
       {/* MESSAGES */}
-      <div className="flex-1 overflow-y-auto isolate px-4 py-4 md:py-3">
+      <div
+        ref={listRef}
+        onScroll={handleScroll}
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-4 md:py-3 relative"
+      >
         {messages.map((msg) => (
           <Message key={msg._id} msg={msg} />
         ))}
@@ -160,14 +152,28 @@ export default function ChatWindow({ user, socket }) {
         )}
 
         <div ref={bottomRef} />
+
+        {/* ⬇ JUMP TO BOTTOM */}
+        {showJump && (
+          <button
+            onClick={() => {
+              bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+              setUnreadCount(0);
+
+            }}
+            className="fixed bottom-24 right-6 px-3 py-1.5 rounded-full
+                       bg-[#a4c910] text-white text-xs shadow-lg
+                       animate-fade mr-48"
+          >
+            ⬇ {unreadCount > 0 ? `${unreadCount} new` : "Latest messages"}
+
+          </button>
+        )}
       </div>
 
       {/* INPUT */}
-      <div className="shrink-0 pb-safe">
-        <MessageInput
-          receiverId={user._id}
-          socket={socket}
-        />
+      <div className="shrink-0">
+        <MessageInput receiverId={user._id} socket={socket} />
       </div>
     </div>
   );

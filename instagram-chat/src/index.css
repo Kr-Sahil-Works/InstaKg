@@ -4,11 +4,19 @@
    ROOT / LAYOUT
    ========================================================= */
 html,
-body,
+body {
+  height: 100%;
+  /* background: linear-gradient(135deg, #3b0a45, #6a0572, #b83280); */
+
+}
+
 #root {
   height: 100%;
   overflow: hidden;
 }
+
+
+
 
 /* =========================================================
    COLOR TOKENS
@@ -124,7 +132,6 @@ body {
 }
 
 .emoji-panel button:hover {
-  /* background-color: hsl(var(--border)); */
   background-color: rgba(0,0,0,0.06);
   transform: scale(1.15);
 }
@@ -270,6 +277,8 @@ body {
 /* =========================================================
    ANIMATIONS
    ========================================================= */
+/* (rest unchanged) */
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
@@ -383,4 +392,77 @@ body {
 }
 .animate-slide-up {
   animation: slideUp .18s ease-out;
+}
+
+
+
+/* ================= MESSAGE TICKS ================= */
+
+.tick-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tick {
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  opacity: 0.9;
+}
+
+/* COLORS — THIS WAS MISSING */
+.tick-gray {
+  color: #9ca3af; /* WhatsApp gray */
+}
+
+.tick-blue {
+  color: #34b7f1; /* WhatsApp blue */
+}
+
+/* ANIMATION */
+.tick-animate {
+  animation: tick-pop 0.22s ease-out;
+}
+
+@keyframes tick-pop {
+  from {
+    transform: rotate(-45deg) scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(-45deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes water {
+  0%   { box-shadow: inset 0 0 0 rgba(255,255,255,0); }
+  50%  { box-shadow: inset 0 0 12px rgba(255,255,255,0.25); }
+  100% { box-shadow: inset 0 0 0 rgba(255,255,255,0); }
+}
+
+.animate-water:focus {
+  animation: water 0.6s ease-out;
+}
+
+@keyframes send-fly {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(14px, -14px) scale(1.1) rotate(10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(40px, -40px) scale(0.3) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+.animate-send-fly {
+  animation: send-fly 0.35s ease-in forwards;
 }

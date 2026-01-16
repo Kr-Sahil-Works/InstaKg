@@ -61,9 +61,9 @@ export default function Chat() {
       />
 
       {/* CHAT AREA */}
-      <section className="flex flex-col flex-1 h-full">
+      <section className="flex flex-col flex-1 h-full overflow-hidden">
         {/* HEADER */}
-        <div className="shrink-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b">
+        <div className="shrink-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b sticky top-0 z-20">
           <div className="flex items-center gap-3">
             <button
               className="md:hidden p-3 text-lg hover:bg-black/20 rounded"
@@ -111,7 +111,7 @@ export default function Chat() {
         </div>
 
         {/* CHAT WINDOW */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden min-h-0">
           {selectedUser && (
             <ChatWindow
               user={selectedUser}

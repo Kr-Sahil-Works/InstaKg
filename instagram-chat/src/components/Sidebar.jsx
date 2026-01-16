@@ -3,6 +3,7 @@ import api from "../api/axios";
 import { FiSearch } from "react-icons/fi";
 import { HiOutlineHome } from "react-icons/hi";
 import Avatar from "./Avatar";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Sidebar({
   setSelectedUser,
@@ -17,7 +18,15 @@ export default function Sidebar({
     api.get("/users").then(res => setUsers(res.data || []));
   }, []);
 
-  const filtered = users.filter(u =>
+  /* ✅ SORT USERS BY LATEST MESSAGE */
+  const sortedUsers = [...users].sort((a, b) => {
+    const aTime = new Date(a.lastMessageAt || 0).getTime();
+    const bTime = new Date(b.lastMessageAt || 0).getTime();
+    return bTime - aTime;
+  });
+
+  /* ✅ FILTER AFTER SORT */
+  const filtered = sortedUsers.filter(u =>
     u.username.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -39,7 +48,7 @@ export default function Sidebar({
           ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        {/* TOP BAR (FIXED) */}
+        {/* TOP BAR */}
         <div className="shrink-0 px-3 py-3 border-b border-black/20 flex gap-2">
           <button
             onClick={() => {
@@ -62,30 +71,73 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* USERS (SCROLL ONLY HERE) */}
+        {/* USERS */}
         <div className="flex-1 overflow-y-auto">
-          {filtered.map(user => (
-            <div
-              key={user._id}
-              onClick={() => {
-                setSelectedUser(user);
-                setOpen(false);
-              }}
-              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-black/10"
-            >
-              <Avatar name={user.username} />
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  {user.username}
-                </p>
-                {onlineUsers.includes(user._id) && (
-                  <span className="text-xs text-green-400">
-                    online
-                  </span>
+          <AnimatePresence>
+            {filtered.map((user, index) => (
+              <div key={user._id}>
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={
+                    user.unreadCount > 0
+                      ? { opacity: 1, y: 0, x: [0, -2, 2, -2, 2, 0] }
+                      : { opacity: 1, y: 0 }
+                  }
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                 onClick={() => {
+  setSelectedUser(user);
+  setOpen(false);
+
+  requestAnimationFrame(() => {
+    window.__ALLOW_AUTOSCROLL__ = true;
+  });
+}}
+
+                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-black/10"
+                >
+                  <Avatar name={user.username} />
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {user.username}
+                    </p>
+
+                    {onlineUsers.includes(user._id) && (
+                      <span className="text-xs text-green-400">
+                        online
+                      </span>
+                    )}
+                  </div>
+
+                  {user.unreadCount > 0 && (
+                    <motion.span
+                      key={user.unreadCount}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 22,
+                      }}
+                      className="min-w-4.5 h-4.5
+                                 flex items-center justify-center
+                                 text-[10px] font-semibold
+                                 bg-[#25D366] text-black
+                                 rounded-full"
+                    >
+                      {user.unreadCount}
+                    </motion.span>
+                  )}
+                </motion.div>
+
+                {index !== filtered.length - 1 && (
+                  <div className="mx-4 border-b border-white/10" />
                 )}
               </div>
-            </div>
-          ))}
+            ))}
+          </AnimatePresence>
         </div>
       </aside>
     </>

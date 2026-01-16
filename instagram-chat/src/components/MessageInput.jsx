@@ -166,7 +166,8 @@ export default function MessageInput({ receiverId, socket }) {
     <>
       {/* DIM BACKGROUND */}
       {showClipboard && (
-        <div className="fixed inset-0 bg-black/40 z-40 animate-fade" />
+        <div className="fixed inset-0 bg-black/45 backdrop-blur-[1px]
+ z-40 animate-fade" />
       )}
 
       {/* EMOJI POPUP */}
@@ -174,10 +175,15 @@ export default function MessageInput({ receiverId, socket }) {
         <div
           ref={emojiRef}
           className="absolute bottom-16 left-4 right-4 mx-auto max-w-sm
-                     z-50 rounded-2xl bg-background shadow-2xl
-                     overflow-hidden animate-scale"
+           z-50 rounded-2xl
+           bg-background/80 backdrop-blur-sm
+           shadow-2xl
+           overflow-hidden animate-scale"
+
         >
-          <div className="flex items-center gap-2 px-3 py-2 border-b">
+          <div className="flex items-center gap-2 px-3 py-2
+                border-b border-white/10
+                bg-background/70 backdrop-blur-sm">
             <FiSearch className="opacity-60" />
             <input
               value={search}
@@ -187,7 +193,9 @@ export default function MessageInput({ receiverId, socket }) {
             />
           </div>
 
-          <div className="flex justify-between px-2 py-2 border-b">
+          <div className="flex justify-between px-2 py-2
+                border-b border-white/10
+                bg-background/70 backdrop-blur-sm">
             {Object.entries(EMOJI_CATEGORIES).map(([key, icon]) => (
               <button
                 key={key}
@@ -216,8 +224,10 @@ export default function MessageInput({ receiverId, socket }) {
         <div
           ref={clipboardRef}
           className="fixed bottom-20 left-4 right-4 mx-auto max-w-sm
-                     bg-background z-50 rounded-3xl shadow-xl
-                     animate-slide-up"
+           bg-background/80 backdrop-blur-sm
+           z-50 rounded-3xl shadow-xl
+           animate-slide-up"
+
         >
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <span className="text-sm font-medium">Clipboard</span>
@@ -242,7 +252,9 @@ export default function MessageInput({ receiverId, socket }) {
             {clipboard.map((item) => (
               <div
                 key={item._id}
-                className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2"
+                className="flex items-center gap-2
+           bg-muted/80 backdrop-blur-sm
+           rounded-xl px-3 py-2"
               >
                 {editId === item._id ? (
                   <input
@@ -281,44 +293,126 @@ export default function MessageInput({ receiverId, socket }) {
         </div>
       )}
 
-      {/* INPUT BAR — ONLY SPACING FIXED */}
-      <div className="sticky bottom-0 w-full bg-background border-t px-3 py-2">
-        <div className="flex items-end gap-3">
+      {/* ================= GLASS INPUT BAR ================= */}
+<div
+  className="
+    sticky bottom-0 w-full
+    bg-background/65 backdrop-blur-2xl
+    border-t border-white/20
+    px-3 py-2
+  "
+>
+  <div className="flex items-end gap-2">
 
-          {/* LEFT ICONS */}
-          <div className="flex items-center gap-2">
-            <button onClick={() => setShowEmoji((v) => !v)}>
-              <FiSmile />
-            </button>
+    {/* EMOJI BUTTON */}
+    <button
+      onClick={() => setShowEmoji((v) => !v)}
+      className="
+        h-10 w-10
+        flex items-center justify-center
+        rounded-full
+        bg-white/20 backdrop-blur-xl
+        hover:bg-white/30
+        active:scale-95
+        transition
+      "
+    >
+      <FiSmile className="text-foreground/80" />
+    </button>
 
-            <button onClick={() => setShowClipboard(true)}>
-              <HiOutlinePaperClip />
-            </button>
-          </div>
+    {/* CLIPBOARD BUTTON */}
+    <button
+      onClick={() => setShowClipboard(true)}
+      className="
+        h-10 w-10
+        flex items-center justify-center
+        rounded-full
+        bg-white/20 backdrop-blur-xl
+        hover:bg-white/30
+        active:scale-95
+        transition
+      "
+    >
+      <HiOutlinePaperClip className="text-foreground/80" />
+    </button>
 
-          {/* INPUT */}
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            onPointerDown={startLongPress}
-            onPointerUp={cancelLongPress}
-            onPointerLeave={cancelLongPress}
-            rows={1}
-            placeholder="Type a message"
-            className="flex-1 resize-none rounded-2xl px-4 py-2 bg-muted outline-none"
-          />
+    {/* TEXT INPUT */}
+    <div className="relative flex-1">
+      <textarea
+        ref={textareaRef}
+        value={text}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onPointerDown={startLongPress}
+        onPointerUp={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        rows={1}
+        placeholder="Type a message"
+        className="
+          w-full resize-none
+          rounded-2xl
+          px-4 py-2.5 text-sm
+          text-foreground
+          placeholder:text-foreground/50
 
-          {/* DIVIDER */}
-          <div className="w-px h-6 bg-border opacity-60" />
+          bg-white/25 backdrop-blur-2xl
+          shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]
 
-          {/* SEND */}
-          <button onClick={() => send(text)}>
-            <FiSend />
-          </button>
-        </div>
-      </div>
+          border border-white/30
+          focus:border-white/50
+          focus:bg-white/35
+          outline-none
+
+          transition-all duration-150
+          relative overflow-hidden
+          animate-water
+        "
+      />
+    </div>
+
+   {/* SEND BUTTON — GLASS FLY */}
+<button
+  onClick={() => send(text)}
+  disabled={sending}
+  className="
+    relative h-10 w-10
+    rounded-full
+    flex items-center justify-center
+    bg-white/25 backdrop-blur-xl
+    border border-white/30
+    shadow-lg
+    overflow-hidden
+    transition
+    active:scale-95
+  "
+>
+  {/* FLYING ICON */}
+  <FiSend
+    size={16}
+    className={`
+      text-primary
+      transition-transform duration-200
+      ${sending ? "animate-send-fly" : ""}
+    `}
+  />
+
+  {/* GLASS GLOW */}
+  <span
+    className="
+      absolute inset-0
+      rounded-full
+      bg-white/20
+      opacity-0
+      pointer-events-none
+      group-active:opacity-100
+    "
+  />
+</button>
+
+  </div>
+</div>
+
+
     </>
   );
 }

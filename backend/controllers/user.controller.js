@@ -1,16 +1,38 @@
 import User from "../models/user.model.js";
+import Message from "../models/message.model.js"; // ✅ ADDED — required for last message lookup
 
 export const getUsersForSidebar = async (req, res) => {
-    try {
-    
-        const loggedInUserId = req.user._id
+  try {
+    const loggedInUserId = req.user._id;
 
-        const filteredUsers = await User.find({ _id: { $ne : loggedInUserId}}).select("-password")
+    const users = await User.find({
+      _id: { $ne: loggedInUserId },
+    })
+      .select("-password")
+      .lean();
 
-        res.status(200).json(filteredUsers)
+    const usersWithLastMessage = await Promise.all(
+      users.map(async (user) => {
+        const lastMessage = await Message.findOne({
+          $or: [
+            { senderId: loggedInUserId, receiverId: user._id },
+            { senderId: user._id, receiverId: loggedInUserId },
+          ],
+        })
+          .sort({ createdAt: -1 })
+          .select("createdAt")
+          .lean();
 
-    } catch (error) {
-        console.log(" Error in getUserForSidebar : ", error.message);
-        res.status(500).json({error:"Internal server error"})
-    }
-}
+        return {
+          ...user,
+          lastMessageAt: lastMessage?.createdAt || null,
+        };
+      })
+    );
+
+    res.status(200).json(usersWithLastMessage);
+  } catch (error) {
+    console.log(" Error in getUserForSidebar : ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

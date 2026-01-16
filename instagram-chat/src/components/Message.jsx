@@ -1,4 +1,5 @@
-import { useContext, useRef, useState, useEffect } from "react";
+import { useContext, useRef, useState, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { AuthContext } from "../context/AuthContext";
 import ForwardDialog from "./ForwardDialog";
 import api from "../api/axios";
@@ -11,9 +12,15 @@ import {
   FiInfo,
 } from "react-icons/fi";
 
+
+
 /* ================= EDIT DIALOG ================= */
 function EditDialog({ value, onCancel, onSave }) {
   const [text, setText] = useState(value);
+  useEffect(() => {
+  setText(value);
+}, [value]);
+
 
   return (
     <div className="fixed inset-0 z-9999 isolate">
@@ -60,8 +67,15 @@ export default function Message({ msg }) {
 
   const { authUser } = useContext(AuthContext);
   const mine = String(msg.senderId) === String(authUser?._id);
+  const EDIT_DELETE_LIMIT = 10 * 60 * 1000; // 10 minutes
+
+const canModify =
+  mine &&
+  Date.now() - new Date(msg.createdAt).getTime() <= EDIT_DELETE_LIMIT;
+
 
   const rootRef = useRef(null);
+  const bubbleRef = useRef(null);
   const pressTimer = useRef(null);
   const longPressed = useRef(false);
 
@@ -74,19 +88,10 @@ export default function Message({ msg }) {
   const [reactions, setReactions] = useState(msg.reactions || []);
   const [forwardOpen, setForwardOpen] = useState(false);
 
-  /* ===== ADDED: DELETE STATE ===== */
+  const [menuPos, setMenuPos] = useState(null);
+
   const [deleting, setDeleting] = useState(false);
-
-  /* ===== ADDED: COLLAPSE AFTER DELETE ===== */
   const [collapsed, setCollapsed] = useState(false);
-
-  /* ===== ADDED: ONE-TIME AUTOSCROLL FLAG ===== */
-  useEffect(() => {
-    if (window.__CHAT_OPENED__ !== true) {
-      window.__CHAT_OPENED__ = true;
-      window.__ALLOW_AUTOSCROLL__ = true;
-    }
-  }, []);
 
   /* ================= GLOBAL DESELECT ================= */
   useEffect(() => {
@@ -148,12 +153,10 @@ export default function Message({ msg }) {
     setReactions(res.data.reactions || []);
   };
 
-  /* ===== ADDED: DELETE HANDLER ===== */
+  /* ===== DELETE ===== */
   const handleDelete = async () => {
     setDeleting(true);
-    setTimeout(() => {
-      setCollapsed(true); // remove gap immediately
-    }, 350);
+    setTimeout(() => setCollapsed(true), 350);
 
     setTimeout(async () => {
       await api.delete(`/messages/${msg._id}`);
@@ -163,167 +166,244 @@ export default function Message({ msg }) {
     }, 360);
   };
 
+  /* ===== MENU POSITION (FIXED OVERLAY) ===== */
+  useLayoutEffect(() => {
+    if (!showMenu || !bubbleRef.current) return;
+
+    const rect = bubbleRef.current.getBoundingClientRect();
+
+    setMenuPos({
+      top: rect.bottom + 8,
+      left: mine ? rect.right - 160 : rect.left,
+      emojiTop: rect.top - 48,
+      emojiLeft: mine ? rect.right - 180 : rect.left,
+    });
+  }, [showMenu, mine]);
+
   return (
     <>
-      {(showMenu || selected) && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30"
-          onClick={() => {
-            setShowMenu(false);
-            setSelected(false);
-            setInfoOpen(false);
-            window.__ACTIVE_MESSAGE__ = null;
-          }}
-        />
-      )}
+      {(showMenu || selected) &&
+        createPortal(
+          <div
+          className="fixed inset-0 z-99998 bg-black/30 backdrop-blur-sm"
+
+            onClick={() => {
+              setShowMenu(false);
+              setSelected(false);
+              setInfoOpen(false);
+              window.__ACTIVE_MESSAGE__ = null;
+            }}
+          />,
+          document.body
+        )}
 
       {!collapsed && (
         <div
           ref={rootRef}
-          onAnimationEnd={() => {
-            if (deleting) setCollapsed(true);
-          }}
+          onAnimationEnd={() => deleting && setCollapsed(true)}
           className={`flex my-1.5 ${mine ? "justify-end" : "justify-start"} ${
             deleting ? "animate-smoke-vanish" : ""
           }`}
         >
           <div
-            className="relative max-w-[70%] z-50"
+            ref={bubbleRef}
+            className="relative max-w-[70%]"
             style={{
               marginBottom: reactions.length > 0 ? "16px" : undefined,
             }}
           >
-            <div className="relative">
-              <div
-                onMouseDown={startPress}
-                onMouseUp={endPress}
-                onTouchStart={startPress}
-                onTouchEnd={endPress}
-                onClick={handleClick}
-                className={`px-3 py-2 rounded-2xl text-[13px] line-clamp-12 ${
-                  mine ? "msg-out" : "msg-in"
-                } ${
-                  selected
-                    ? "ring-2 ring-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.9)]"
-                    : ""
-                }`}
-              >
-                {text}
+            <div
+              onMouseDown={startPress}
+              onMouseUp={endPress}
+              onTouchStart={startPress}
+              onTouchEnd={endPress}
+              onClick={handleClick}
+              className={`px-3 py-2 rounded-2xl text-[13px] line-clamp-12 ${
+                mine ? "msg-out" : "msg-in"
+              } ${
+               selected
+  ? "ring-2 ring-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.9)] relative z-100001"
+  : ""
+              }`}
+            >
+              {text}
 
-                <div className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-70">
-                  <span>
-                    {new Date(msg.createdAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+              <div className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-70">
+                <span>
+                  {new Date(msg.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                {msg.edited && (
+  <span className="italic text-[10px] opacity-60">
+    edited
+  </span>
+)}
+
+
+                {mine && !msg.delivered && !msg.seen && (
+                  <span className="tick-wrap">
+                    <span className="tick tick-gray" />
                   </span>
+                )}
 
-                  {mine && msg.delivered && !msg.seen && (
-                    <span className="text-gray-400">✔✔</span>
-                  )}
+                {mine && msg.delivered && !msg.seen && (
+                  <span className="tick-wrap tick-animate">
+                    <span className="tick tick-gray" />
+                    <span className="tick tick-gray" />
+                  </span>
+                )}
 
-                  {mine && msg.seen && (
-                    <span className="text-blue-500">✔✔</span>
-                  )}
-                </div>
+                {mine && msg.seen && (
+                  <span className="tick-wrap tick-animate">
+                    <span className="tick tick-blue" />
+                    <span className="tick tick-blue" />
+                  </span>
+                )}
               </div>
-
-              {reactions.length > 0 && (
-                <div className="absolute -bottom-3 right-1 z-[100000] bg-background px-1 rounded-full text-sm shadow">
-                  {reactions.map((r, i) => (
-                    <span key={i}>{r.emoji}</span>
-                  ))}
-                </div>
-              )}
             </div>
 
-            {/* EMOJI BAR */}
-            {showMenu && (
-              <div
-                className={`absolute -top-12 ${
-                  mine ? "right-0" : "left-0"
-                } z-[100000] bg-black/80 backdrop-blur px-2 py-1 rounded-full flex gap-2 animate-scale`}
-              >
-                {["❤️", "👍", "😂", "😮", "😢", "😡"].map((e) => (
-                  <button key={e} onClick={() => react(e)} className="text-lg">
-                    {e}
-                  </button>
-                ))}
-              </div>
-            )}
+            {reactions.length > 0 && (
+  <div
+    className={`absolute -bottom-3 right-1 ${
+      selected ? "z-100001" : "z-10"
+    } bg-background/80 backdrop-blur-md px-1 rounded-full text-sm shadow`}
+  >
+    {reactions.map((r, i) => (
+      <span key={i}>{r.emoji}</span>
+    ))}
+  </div>
+)}
 
-            {/* MENU */}
-            {showMenu && (
-              <div
-                className={`absolute ${
-                  mine ? "right-0" : "left-0"
-                } mt-2 w-40 rounded-xl bg-background shadow-lg text-xs overflow-hidden z-[100000]`}
-              >
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2"
-                  onClick={() => {
-                    setShowMenu(false);
-                    setSelected(false);
-                    window.__ACTIVE_MESSAGE__ = null;
-                  }}
-                >
-                  <FiX /> Close
-                </button>
-
-                {mine && (
-                  <button
-                    className="w-full flex items-center gap-2 px-3 py-2"
-                    onClick={() => setEditing(true)}
-                  >
-                    <FiEdit2 /> Edit
-                  </button>
-                )}
-
-                {/* ADDED BACK: INFO */}
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2"
-                  onClick={() => setInfoOpen((v) => !v)}
-                >
-                  <FiInfo /> Info
-                </button>
-
-                {mine && (
-                  <button
-                    className="w-full flex items-center gap-2 px-3 py-2 text-red-500"
-                    onClick={handleDelete}
-                  >
-                    <FiTrash2 /> Delete
-                  </button>
-                )}
-
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2"
-                  onClick={() => setForwardOpen(true)}
-                >
-                  <FiSend /> Forward
-                </button>
-              </div>
-            )}
-
-            {infoOpen && (
-              <div className="absolute right-0 mt-2 p-3 rounded-lg bg-background text-xs shadow z-[100000]">
-                Sent at {new Date(msg.createdAt).toLocaleString()}
-              </div>
-            )}
           </div>
         </div>
       )}
 
+      {menuPos &&
+        showMenu &&
+        createPortal(
+          <>
+            {/* EMOJI BAR */}
+            <div
+              className="fixed z-100000 bg-white/10 backdrop-blur-xl
+                         border border-white/20
+                         px-2 py-1 rounded-full
+                         shadow-2xl flex gap-2 animate-scale"
+              style={{
+                top: menuPos.emojiTop,
+                left: menuPos.emojiLeft,
+              }}
+            >
+              {["❤️", "👍", "😂", "😮", "😢", "😡"].map((e) => (
+                <button
+                  key={e}
+                  onClick={() => react(e)}
+                  className="text-lg hover:scale-110 transition"
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+
+            {/* MENU */}
+            <div
+              className="fixed z-100000 mt-2 w-40 rounded-2xl
+                         bg-white/10 backdrop-blur-xl
+                         border border-white/20
+                         shadow-2xl text-xs overflow-hidden"
+              style={{
+                top: menuPos.top,
+                left: menuPos.left,
+              }}
+            >
+              <button
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/10"
+                onClick={() => {
+                  setShowMenu(false);
+                  setSelected(false);
+                  setInfoOpen(false);
+                  window.__ACTIVE_MESSAGE__ = null;
+                }}
+              >
+                <FiX /> Close
+              </button>
+
+              {canModify && (
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/10"
+                  onClick={() => {
+                    setShowMenu(false);
+                    setSelected(false);
+                    window.__ACTIVE_MESSAGE__ = null;
+                    setEditing(true);
+                  }}
+                >
+                  <FiEdit2 /> Edit
+                </button>
+              )}
+
+              <button
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/10"
+                onClick={() => {
+                  setShowMenu(false);
+                  setSelected(false);
+                  window.__ACTIVE_MESSAGE__ = null;
+                  setInfoOpen((v) => !v);
+                }}
+              >
+                <FiInfo /> Info
+              </button>
+
+              {canModify && (
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2
+                             text-red-400 hover:bg-red-500/10"
+                  onClick={() => {
+                    setShowMenu(false);
+                    setSelected(false);
+                    window.__ACTIVE_MESSAGE__ = null;
+                    handleDelete();
+                  }}
+                >
+                  <FiTrash2 /> Delete
+                </button>
+              )}
+
+              <button
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/10"
+                onClick={() => {
+                  setShowMenu(false);
+                  setSelected(false);
+                  window.__ACTIVE_MESSAGE__ = null;
+                  setForwardOpen(true);
+                }}
+              >
+                <FiSend /> Forward
+              </button>
+            </div>
+          </>,
+          document.body
+        )}
+
+      {/* ✅ ADDED — EDIT SAVE FIX */}
       {editing && (
         <EditDialog
           value={text}
           onCancel={() => setEditing(false)}
-          onSave={(t) => {}}
+          onSave={async (t) => {
+            await api.put(`/messages/edit/${msg._id}`, { message: t });
+
+
+            setText(t);
+            setEditing(false);
+          }}
         />
       )}
 
+      {/* ✅ ADDED — FORWARD DIALOG */}
       {forwardOpen && (
-        <div className="fixed inset-0 z-9999 isolate">
+        <div className="fixed inset-0 z-100001 isolate">
           <ForwardDialog
             open={forwardOpen}
             message={msg}
@@ -331,6 +411,30 @@ export default function Message({ msg }) {
           />
         </div>
       )}
+
+{infoOpen &&
+  createPortal(
+    <div className="fixed inset-0 z-99999 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={() => setInfoOpen(false)}
+      />
+      <div className="relative bg-background rounded-xl p-4 text-xs shadow-xl">
+        <div>
+          <b>Status:</b>{" "}
+          {msg.seen ? "Seen" : msg.delivered ? "Delivered" : "Sent"}
+        </div>
+        <div>
+          <b>Sent at:</b>{" "}
+          {new Date(msg.createdAt).toLocaleString()}
+        </div>
+      </div>
+    </div>,
+    document.body
+  )}
+
+
+
     </>
   );
 }
