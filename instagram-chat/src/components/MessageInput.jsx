@@ -416,3 +416,23 @@ export default function MessageInput({ receiverId, socket }) {
     </>
   );
 }
+<style>
+{`
+/* ===== FIX GREEN BLOB FROM BACKDROP BLUR ===== */
+
+/* Isolate the input bar so its blur never bleeds into messages */
+.sticky.bottom-0 {
+  isolation: isolate;
+  contain: paint;
+}
+
+/* Force blur to sample only its own background */
+.sticky.bottom-0::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  z-index: -1;
+}
+`}
+</style>

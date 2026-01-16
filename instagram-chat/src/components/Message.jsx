@@ -440,28 +440,29 @@ const canModify =
 }
 <style>
 {`
-/* ===== FIX MESSAGE BUBBLE OVERLAP (ADD-ONLY) ===== */
+/* ===== DEFINITIVE FIX — STOP GREEN BLOB ===== */
 
-/* Clip rounded corners so next bubble cannot bleed */
+/* Force bubble backgrounds to stay inside rounded corners */
 .msg-out,
 .msg-in {
-  overflow: hidden;
+  background-clip: padding-box !important;
+  -webkit-background-clip: padding-box !important;
+  overflow: hidden !important;
 }
 
-/* Tiny vertical separation between stacked messages */
-.msg-out:not(:last-child),
-.msg-in:not(:last-child) {
-  margin-bottom: 2px;
-}
-
-/* Extra safety: prevent parent visual bleed */
+/* Kill any pseudo-element bubble tails or shadows bleeding through */
 .msg-out::before,
-.msg-in::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
+.msg-out::after,
+.msg-in::before,
+.msg-in::after {
+  display: none !important;
+}
+
+/* Ensure stacking order is correct */
+.msg-out,
+.msg-in {
+  position: relative;
+  z-index: 1;
 }
 `}
 </style>
