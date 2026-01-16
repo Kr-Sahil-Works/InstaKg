@@ -297,7 +297,7 @@ export default function MessageInput({ receiverId, socket }) {
 <div
   className="
     sticky bottom-0 w-full
-    bg-background/65 backdrop-blur-2xl
+    bg-background/65 
     border-t border-white/20
     px-3 py-2
   "
@@ -355,7 +355,7 @@ export default function MessageInput({ receiverId, socket }) {
           text-foreground
           placeholder:text-foreground/50
 
-          bg-white/25 backdrop-blur-2xl
+          bg-white/25 
           shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]
 
           border border-white/30
@@ -418,21 +418,14 @@ export default function MessageInput({ receiverId, socket }) {
 }
 <style>
 {`
-/* ===== FIX GREEN BLOB FROM BACKDROP BLUR ===== */
+/* ===== FINAL GUARANTEED FIX — MOBILE BLUR BUG ===== */
 
-/* Isolate the input bar so its blur never bleeds into messages */
-.sticky.bottom-0 {
-  isolation: isolate;
-  contain: paint;
-}
-
-/* Force blur to sample only its own background */
-.sticky.bottom-0::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: inherit;
-  z-index: -1;
+/* Disable backdrop-filter ONLY for chat input on mobile */
+@supports (-webkit-touch-callout: none) {
+  .sticky.bottom-0 {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }
 `}
 </style>

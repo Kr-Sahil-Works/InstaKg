@@ -60,58 +60,77 @@ export default function LogoutButton() {
       </motion.button>
 
       {/* MODAL */}
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          onClick={() => {
-            setOpen(false);
-            setExpanded(false);
-          }}
-        >
-          <div className="absolute inset-0 bg-black/60 animate-fade" />
-
+      <AnimatePresence>
+        {open && (
           <motion.div
-            onClick={(e) => e.stopPropagation()}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="relative w-80 rounded-lg panel p-5"
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => {
+              setOpen(false);
+              setExpanded(false);
+            }}
           >
-            <h2 className="text-base font-semibold mb-2">
-              Logout
-            </h2>
+            {/* FULL BLUR BACKDROP */}
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
 
-            <p className="text-sm text-gray-400 mb-5">
-              Are you sure you want to logout?
-            </p>
+            {/* ALERT BOX */}
+            <motion.div
+              onClick={(e) => e.stopPropagation()}
+              initial={{ y: 20, scale: 0.92, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 20, scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 22 }}
+              className="relative w-80 rounded-xl overflow-hidden shadow-2xl"
+            >
+              {/* RED HEADER (ALERT STYLE) */}
+              <div className="bg-red-600 text-white px-4 py-3 text-sm font-semibold">
+                Logout
+              </div>
 
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  setExpanded(false);
-                }}
-                className="px-3 py-1 rounded text-sm bg-black/20 hover:bg-black/30"
-              >
-                Cancel
-              </button>
+              {/* BODY */}
+              <div className="panel p-5">
+                <p className="text-sm text-gray-400 mb-5">
+                  Are you sure you want to logout?
+                </p>
 
-              <button
-                onClick={logout}
-                disabled={loading}
-                className="
-                  px-3 py-1 rounded text-sm
-                  bg-red-600 text-white
-                  hover:bg-red-500
-                  active:scale-90
-                  disabled:opacity-60
-                "
-              >
-                {loading ? "Logging out..." : "Logout"}
-              </button>
-            </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      setOpen(false);
+                      setExpanded(false);
+                    }}
+                    className="
+                      px-3 py-1 rounded text-sm
+                      bg-black/20
+                      hover:bg-black/30
+                      transition
+                    "
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={logout}
+                    disabled={loading}
+                    className="
+                      px-3 py-1 rounded text-sm
+                      bg-red-600 text-white
+                      hover:bg-red-500
+                      active:scale-90
+                      disabled:opacity-60
+                      transition
+                    "
+                  >
+                    {loading ? "Logging out..." : "Logout"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </>
   );
 }

@@ -10,9 +10,9 @@ export default function ThemeToggle() {
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className="
-        relative w-16 h-8 rounded-full
+        relative w-12 h-6 rounded-full
         bg-black/20 dark:bg-white/20
-        flex items-center px-1
+        flex items-center px-0.5
         transition-colors
       "
     >
@@ -21,13 +21,13 @@ export default function ThemeToggle() {
         layout
         transition={{ type: "spring", stiffness: 500, damping: 30 }}
         className="
-          w-6 h-6 rounded-full
+          w-4 h-4 rounded-full
           bg-white dark:bg-black
           flex items-center justify-center
-          shadow-md
+          shadow
         "
         style={{
-          marginLeft: isDark ? "32px" : "0px",
+          marginLeft: isDark ? "20px" : "0px",
         }}
       >
         {/* ICON */}
@@ -35,8 +35,8 @@ export default function ThemeToggle() {
           key={theme}
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.2 }}
-          className="text-sm"
+          transition={{ duration: 0.15 }}
+          className="text-[10px]"
         >
           {isDark ? "🌙" : "☀️"}
         </motion.span>

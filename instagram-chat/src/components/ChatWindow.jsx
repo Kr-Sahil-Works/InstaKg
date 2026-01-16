@@ -68,15 +68,6 @@ export default function ChatWindow({ user, socket }) {
               transition={{ duration: 0.18 }}
               className="relative"
             >
-              {isMe && (
-                <span className="
-                  absolute -top-2 right-2
-                  text-[10px] px-1.5 py-0.5
-                  rounded-full bg-green-600 text-white
-                ">
-                  You
-                </span>
-              )}
               <Message msg={msg} />
             </motion.div>
           );
