@@ -438,3 +438,30 @@ const canModify =
     </>
   );
 }
+<style>
+{`
+/* ===== FIX MESSAGE BUBBLE OVERLAP (ADD-ONLY) ===== */
+
+/* Clip rounded corners so next bubble cannot bleed */
+.msg-out,
+.msg-in {
+  overflow: hidden;
+}
+
+/* Tiny vertical separation between stacked messages */
+.msg-out:not(:last-child),
+.msg-in:not(:last-child) {
+  margin-bottom: 2px;
+}
+
+/* Extra safety: prevent parent visual bleed */
+.msg-out::before,
+.msg-in::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+`}
+</style>
