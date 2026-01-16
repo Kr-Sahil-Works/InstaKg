@@ -296,12 +296,13 @@ export default function MessageInput({ receiverId, socket }) {
       {/* ================= GLASS INPUT BAR ================= */}
 <div
   className="
-    sticky bottom-0 w-full
+    sticky bottom-0 w-full safe-bottom
     bg-background/65 
     border-t border-white/20
     px-3 py-2
   "
 >
+
   <div className="flex items-end gap-2">
 
     {/* EMOJI BUTTON */}

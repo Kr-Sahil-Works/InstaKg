@@ -22,9 +22,12 @@ export default function ChatWindow({ user, socket }) {
     api.get(`/messages/${user._id}`).then((res) => {
       setMessages(res.data || []);
       seenSet.current.clear();
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "auto" });
-      }, 0);
+     setTimeout(() => {
+  if (window.__ALLOW_AUTOSCROLL__ !== false) {
+    bottomRef.current?.scrollIntoView({ behavior: "auto" });
+  }
+}, 0);
+
     });
   }, [user]);
 
@@ -48,7 +51,7 @@ export default function ChatWindow({ user, socket }) {
   }, [socket, user]);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden min-h-0">
+    <div className="flex flex-col h-full overflow-hidden min-h-0 touch-pan-y">
 
       {/* ================= EMPTY STATE ================= */}
       {!user && (

@@ -227,42 +227,89 @@ export default function Chat() {
           </div>
         </div>
 
-        <motion.div
-          className="flex-1 overflow-hidden min-h-0"
-          drag="x"
-          dragElastic={0.15}
-          onDragEnd={(e, info) => {
-            if (info.offset.x > 120 && selectedUser) {
-              setSelectedUser(null);
-              setOpen(true);
-            }
-          }}
-        >
+       <motion.div
+  className="flex-1 overflow-hidden min-h-0"
+  drag="x"
+  dragElastic={0.15}
+  dragConstraints={{ left: 0, right: 0 }}
+  style={{ touchAction: "pan-y" }}
+  onDragEnd={(e, info) => {
+    if (info.offset.x > 120 && selectedUser) {
+      setSelectedUser(null);
+      setOpen(true);
+    }
+  }}
+>
+
           <ChatWindow user={selectedUser} socket={socket} />
         </motion.div>
       </section>
 
-      <style>
-        {`
-        .back-btn:active .ripple {
-          animation: ripple 0.45s ease-out;
-        }
+    <style>
+  {`
+  .back-btn:active .ripple {
+    animation: ripple 0.45s ease-out;
+  }
 
-        .ripple {
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(circle, rgba(255,255,255,0.35) 10%, transparent 10%);
-          transform: scale(0);
-        }
+  .ripple {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.35) 10%, transparent 10%);
+    transform: scale(0);
+  }
 
-        @keyframes ripple {
-          to {
-            transform: scale(2.5);
-            opacity: 0;
-          }
-        }
-        `}
-      </style>
+  @keyframes ripple {
+    to {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
+
+  /* ================= MOBILE SCROLL LOCK FIX ================= */
+
+  html, body {
+    overflow-x: hidden !important;
+    overscroll-behavior-x: none !important;
+    width: 100%;
+  }
+
+  #root {
+    overflow-x: hidden !important;
+  }
+
+  * {
+    overscroll-behavior-x: none;
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    body {
+      touch-action: pan-y;
+    }
+  }
+
+  /* ================= KEYBOARD RESIZE FIX (ADD ONLY) ================= */
+
+  html, body {
+    height: 100%;
+    position: fixed;
+    inset: 0;
+  }
+
+  /* Use dynamic viewport height when keyboard opens */
+  @supports (height: 100dvh) {
+    .h-screen {
+      height: 100dvh !important;
+    }
+  }
+
+  /* Prevent vertical jump when keyboard toggles */
+  body {
+    overscroll-behavior-y: none;
+  }
+  `}
+</style>
+
+
     </div>
   );
 }
