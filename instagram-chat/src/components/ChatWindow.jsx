@@ -51,12 +51,16 @@ export default function ChatWindow({ user, socket }) {
   }, [socket, user]);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden min-h-0 touch-pan-y">
+    <div
+  className="flex flex-col min-h-0 touch-pan-y"
+  style={{ contain: "layout size" }}
+>
+
 
       {/* ================= EMPTY STATE ================= */}
       {!user && (
         <div
-          className="relative flex-1 overflow-hidden"
+          className="relative flex-1 "
           onMouseMove={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -190,10 +194,15 @@ export default function ChatWindow({ user, socket }) {
       {/* ================= CHAT CONTENT ================= */}
       {user && (
         <>
-          <div
-            ref={listRef}
-            className="flex-1 overflow-y-auto px-4 py-4 relative"
-          >
+         <div
+  ref={listRef}
+  className="flex-1 min-h-0 overflow-y-auto px-4 py-4 relative"
+  style={{
+    overscrollBehavior: "contain",
+    WebkitOverflowScrolling: "touch",
+  }}
+>
+
             {messages.map((msg) => (
               <motion.div
                 key={msg._id}
@@ -219,9 +228,10 @@ export default function ChatWindow({ user, socket }) {
             <div ref={bottomRef} />
           </div>
 
-          <div className="shrink-0">
-            <MessageInput receiverId={user._id} socket={socket} />
-          </div>
+          <div className="shrink-0 sticky bottom-0 z-20">
+  <MessageInput receiverId={user._id} socket={socket} />
+</div>
+
         </>
       )}
     </div>

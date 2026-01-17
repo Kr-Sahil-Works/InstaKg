@@ -6,9 +6,12 @@
 html,
 body {
   height: 100%;
-  /* background: linear-gradient(135deg, #3b0a45, #6a0572, #b83280); */
-
+  width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
 }
+
 
 #root {
   height: 100%;
@@ -68,7 +71,9 @@ body {
     background-color var(--theme-transition),
     border-color var(--theme-transition),
     color var(--theme-transition);
+  overscroll-behavior-x: none;
 }
+
 
 /* =========================================================
    PANELS
@@ -470,4 +475,11 @@ body {
 .handwritten {
   font-family: "Comic Sans MS", "Segoe Script", "Bradley Hand", cursive;
   letter-spacing: 0.4px;
+}
+
+/* ================= SAFARI KEYBOARD HEIGHT FIX ================= */
+@supports (height: 100dvh) {
+  .h-screen {
+    height: 100dvh !important;
+  }
 }

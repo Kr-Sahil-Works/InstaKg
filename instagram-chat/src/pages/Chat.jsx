@@ -17,10 +17,9 @@ export default function Chat() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [open, setOpen] = useState(false);
   const [lastSeen, setLastSeen] = useState(null);
+const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  const [viewportHeight, setViewportHeight] = useState(
-    typeof window !== "undefined" ? window.innerHeight : 0
-  );
+  
 
   const { authUser, loading } = useContext(AuthContext);
   const { socket, onlineUsers = [] } = useSocket();
@@ -56,21 +55,35 @@ export default function Chat() {
   }, [selectedUser, isOnline]);
 
   useEffect(() => {
-    if (!window.visualViewport) return;
+  if (!window.visualViewport) return;
 
-    const handleResize = () => {
-      setViewportHeight(window.visualViewport.height);
-    };
+  const onResize = () => {
+    const isOpen =
+      window.visualViewport.height <
+      window.innerHeight - 120;
 
-    window.visualViewport.addEventListener("resize", handleResize);
-    return () =>
-      window.visualViewport.removeEventListener("resize", handleResize);
-  }, []);
+    setKeyboardOpen(isOpen);
+
+    document.documentElement.style.setProperty(
+      "--keyboard-open",
+      isOpen ? "1" : "0"
+    );
+  };
+
+  window.visualViewport.addEventListener("resize", onResize);
+  onResize();
+
+  return () =>
+    window.visualViewport.removeEventListener("resize", onResize);
+}, []);
+
 
   return (
     <div
       className="h-screen flex overflow-hidden"
-      style={{ height: viewportHeight }}
+      style={{
+    height: keyboardOpen ? "100dvh" : "100vh",
+  }}
     >
       <Sidebar
         setSelectedUser={setSelectedUser}
@@ -247,6 +260,13 @@ export default function Chat() {
 
     <style>
   {`
+  body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  overscroll-behavior-y: none;
+}
+
   .back-btn:active .ripple {
     animation: ripple 0.45s ease-out;
   }

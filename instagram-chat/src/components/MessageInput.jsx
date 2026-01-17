@@ -166,7 +166,7 @@ export default function MessageInput({ receiverId, socket }) {
     <>
       {/* DIM BACKGROUND */}
       {showClipboard && (
-        <div className="fixed inset-0 bg-black/45 backdrop-blur-[1px]
+        <div className=" inset-0 bg-black/45 backdrop-blur-[1px]
  z-40 animate-fade" />
       )}
 
@@ -223,7 +223,7 @@ export default function MessageInput({ receiverId, socket }) {
       {showClipboard && (
         <div
           ref={clipboardRef}
-          className="fixed bottom-20 left-4 right-4 mx-auto max-w-sm
+          className=" bottom-20 left-4 right-4 mx-auto max-w-sm
            bg-background/80 backdrop-blur-sm
            z-50 rounded-3xl shadow-xl
            animate-slide-up"
@@ -301,7 +301,11 @@ export default function MessageInput({ receiverId, socket }) {
     border-t border-white/20
     px-3 py-2
   "
+  style={{
+    paddingBottom: "env(safe-area-inset-bottom)",
+  }}
 >
+
 
   <div className="flex items-end gap-2">
 
@@ -339,16 +343,19 @@ export default function MessageInput({ receiverId, socket }) {
 
     {/* TEXT INPUT */}
     <div className="relative flex-1">
-      <textarea
-        ref={textareaRef}
-        value={text}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onPointerDown={startLongPress}
-        onPointerUp={cancelLongPress}
-        onPointerLeave={cancelLongPress}
-        rows={1}
-        placeholder="Type a message"
+   <textarea
+  ref={textareaRef}
+  value={text}
+  onChange={handleChange}
+  onKeyDown={handleKeyDown}
+  onFocus={() => {
+    window.__ALLOW_AUTOSCROLL__ = true;
+  }}
+  onBlur={() => {
+    window.__ALLOW_AUTOSCROLL__ = false;
+  }}
+  rows={1}
+  placeholder="Type a message"
         className="
           w-full resize-none
           rounded-2xl

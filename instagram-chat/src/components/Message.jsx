@@ -61,6 +61,8 @@ function EditDialog({ value, onCancel, onSave }) {
   );
 }
 
+
+
 /* ================= MESSAGE ================= */
 export default function Message({ msg }) {
   if (!msg) return null;
@@ -80,6 +82,13 @@ const canModify =
   const longPressed = useRef(false);
 
   const [showMenu, setShowMenu] = useState(false);
+  useEffect(() => {
+  document.body.style.overflow = showMenu ? "hidden" : "";
+  return () => {
+    document.body.style.overflow = "";
+  };
+}, [showMenu]);
+
   const [selected, setSelected] = useState(false);
   const [editing, setEditing] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -109,7 +118,7 @@ const canModify =
 
   /* ===== LONG PRESS ===== */
   const startPress = () => {
-    window.__ALLOW_AUTOSCROLL__ = false;
+    
     longPressed.current = false;
     pressTimer.current = setTimeout(() => {
       longPressed.current = true;
@@ -126,7 +135,7 @@ const canModify =
 
   /* ===== ONE TAP ===== */
   const handleClick = (e) => {
-    window.__ALLOW_AUTOSCROLL__ = false;
+    
     e.stopPropagation();
 
     if (
@@ -148,7 +157,7 @@ const canModify =
 
   /* ===== REACT ===== */
   const react = async (emoji) => {
-    window.__ALLOW_AUTOSCROLL__ = false;
+    
     const res = await api.put(`/messages/react/${msg._id}`, { emoji });
     setReactions(res.data.reactions || []);
   };
@@ -184,16 +193,17 @@ const canModify =
     <>
       {(showMenu || selected) &&
         createPortal(
-          <div
-          className="fixed inset-0 z-99998 bg-black/30 backdrop-blur-sm"
-
-            onClick={() => {
-              setShowMenu(false);
-              setSelected(false);
-              setInfoOpen(false);
-              window.__ACTIVE_MESSAGE__ = null;
-            }}
-          />,
+         <div
+  className="fixed inset-0 z-99998 bg-black/30 backdrop-blur-sm"
+  style={{ touchAction: "none" }}
+  onClick={() => {
+    setShowMenu(false);
+    setSelected(false);
+    setInfoOpen(false);
+    window.__ACTIVE_MESSAGE__ = null;
+  }}
+/>
+,
           document.body
         )}
 
