@@ -3,20 +3,17 @@
 /* =========================================================
    ROOT / LAYOUT
    ========================================================= */
-html,
-body {
-  height: 100%;
+html, body {
+  margin: 0;
   width: 100%;
   overflow-x: hidden;
-  overscroll-behavior-y: none;
-  touch-action: pan-y;
 }
-
 
 #root {
-  height: 100%;
-  overflow: hidden;
+  height: 100dvh;
 }
+
+
 
 
 
@@ -477,9 +474,3 @@ body {
   letter-spacing: 0.4px;
 }
 
-/* ================= SAFARI KEYBOARD HEIGHT FIX ================= */
-@supports (height: 100dvh) {
-  .h-screen {
-    height: 100dvh !important;
-  }
-}

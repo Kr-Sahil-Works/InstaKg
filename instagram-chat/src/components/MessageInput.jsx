@@ -295,12 +295,13 @@ export default function MessageInput({ receiverId, socket }) {
 
       {/* ================= GLASS INPUT BAR ================= */}
 <div
-  className="
-    sticky bottom-0 w-full safe-bottom
-    bg-background/65 
-    border-t border-white/20
-    px-3 py-2
-  "
+ className="
+  shrink-0 w-full safe-bottom
+  bg-background/65 
+  border-t border-white/20
+  px-3 py-2
+"
+
   style={{
     paddingBottom: "env(safe-area-inset-bottom)",
   }}
@@ -341,8 +342,6 @@ export default function MessageInput({ receiverId, socket }) {
       <HiOutlinePaperClip className="text-foreground/80" />
     </button>
 
-    {/* TEXT INPUT */}
-    <div className="relative flex-1">
    <textarea
   ref={textareaRef}
   value={text}
@@ -355,28 +354,29 @@ export default function MessageInput({ receiverId, socket }) {
     window.__ALLOW_AUTOSCROLL__ = false;
   }}
   rows={1}
+  style={{ maxHeight: "120px" }}
   placeholder="Type a message"
-        className="
-          w-full resize-none
-          rounded-2xl
-          px-4 py-2.5 text-sm
-          text-foreground
-          placeholder:text-foreground/50
+  className="
+    w-full resize-none
+    rounded-2xl
+    px-4 py-2.5 text-sm
+    text-foreground
+    placeholder:text-foreground/50
 
-          bg-white/25 
-          shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]
+    bg-white/25
+    shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]
 
-          border border-white/30
-          focus:border-white/50
-          focus:bg-white/35
-          outline-none
+    border border-white/30
+    focus:border-white/50
+    focus:bg-white/35
+    outline-none
 
-          transition-all duration-150
-          relative overflow-hidden
-          animate-water
-        "
-      />
-    </div>
+    transition-all duration-150
+    overflow-y-auto   /* ✅ key */
+    animate-water
+  "
+/>
+
 
    {/* SEND BUTTON — GLASS FLY */}
 <button
@@ -424,16 +424,3 @@ export default function MessageInput({ receiverId, socket }) {
     </>
   );
 }
-<style>
-{`
-/* ===== FINAL GUARANTEED FIX — MOBILE BLUR BUG ===== */
-
-/* Disable backdrop-filter ONLY for chat input on mobile */
-@supports (-webkit-touch-callout: none) {
-  .sticky.bottom-0 {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-}
-`}
-</style>

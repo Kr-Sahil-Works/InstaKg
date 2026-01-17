@@ -54,37 +54,13 @@ const [keyboardOpen, setKeyboardOpen] = useState(false);
       .catch(() => {});
   }, [selectedUser, isOnline]);
 
-  useEffect(() => {
-  if (!window.visualViewport) return;
-
-  const onResize = () => {
-    const isOpen =
-      window.visualViewport.height <
-      window.innerHeight - 120;
-
-    setKeyboardOpen(isOpen);
-
-    document.documentElement.style.setProperty(
-      "--keyboard-open",
-      isOpen ? "1" : "0"
-    );
-  };
-
-  window.visualViewport.addEventListener("resize", onResize);
-  onResize();
-
-  return () =>
-    window.visualViewport.removeEventListener("resize", onResize);
-}, []);
+  
 
 
   return (
-    <div
-      className="h-screen flex overflow-hidden"
-      style={{
-    height: keyboardOpen ? "100dvh" : "100vh",
-  }}
-    >
+   <div className="flex h-full overflow-hidden">
+
+    
       <Sidebar
         setSelectedUser={setSelectedUser}
         onlineUsers={onlineUsers}
@@ -258,76 +234,6 @@ const [keyboardOpen, setKeyboardOpen] = useState(false);
         </motion.div>
       </section>
 
-    <style>
-  {`
-  body {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  overscroll-behavior-y: none;
-}
-
-  .back-btn:active .ripple {
-    animation: ripple 0.45s ease-out;
-  }
-
-  .ripple {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle, rgba(255,255,255,0.35) 10%, transparent 10%);
-    transform: scale(0);
-  }
-
-  @keyframes ripple {
-    to {
-      transform: scale(2.5);
-      opacity: 0;
-    }
-  }
-
-  /* ================= MOBILE SCROLL LOCK FIX ================= */
-
-  html, body {
-    overflow-x: hidden !important;
-    overscroll-behavior-x: none !important;
-    width: 100%;
-  }
-
-  #root {
-    overflow-x: hidden !important;
-  }
-
-  * {
-    overscroll-behavior-x: none;
-  }
-
-  @supports (-webkit-touch-callout: none) {
-    body {
-      touch-action: pan-y;
-    }
-  }
-
-  /* ================= KEYBOARD RESIZE FIX (ADD ONLY) ================= */
-
-  html, body {
-    height: 100%;
-    position: fixed;
-    inset: 0;
-  }
-
-  /* Use dynamic viewport height when keyboard opens */
-  @supports (height: 100dvh) {
-    .h-screen {
-      height: 100dvh !important;
-    }
-  }
-
-  /* Prevent vertical jump when keyboard toggles */
-  body {
-    overscroll-behavior-y: none;
-  }
-  `}
-</style>
 
 
     </div>

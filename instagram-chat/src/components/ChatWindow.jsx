@@ -8,36 +8,87 @@ import { motion } from "framer-motion";
 export default function ChatWindow({ user, socket }) {
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
+  const isNearBottomRef = useRef(true);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+ const scrollToBottom = (smooth = true) => {
+  bottomRef.current?.scrollIntoView({
+    behavior: smooth ? "smooth" : "auto",
+  });
+};
 
   const listRef = useRef(null);
   const bottomRef = useRef(null);
   const seenSet = useRef(new Set());
 
   const { authUser } = useContext(AuthContext);
+  const handleScroll = () => {
+  const el = listRef.current;
+  if (!el) return;
+
+  const threshold = 80;
+  const distanceFromBottom =
+    el.scrollHeight - el.scrollTop - el.clientHeight;
+
+  const nearBottom = distanceFromBottom < threshold;
+  isNearBottomRef.current = nearBottom;
+
+  if (nearBottom) setUnreadCount(0);
+};
+
+useEffect(() => {
+  if (!user) return;
+
+  // wait for React commit + layout + paint
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      // always allow scroll on first open
+      if (isNearBottomRef.current) {
+        bottomRef.current?.scrollIntoView({
+          behavior: messages.length < 5 ? "auto" : "smooth",
+        });
+      }
+    });
+  });
+}, [messages.length, user]);
+
+
+
 
   /* ================= LOAD MESSAGES ================= */
   useEffect(() => {
     if (!user) return;
 
-    api.get(`/messages/${user._id}`).then((res) => {
-      setMessages(res.data || []);
-      seenSet.current.clear();
-     setTimeout(() => {
-  if (window.__ALLOW_AUTOSCROLL__ !== false) {
-    bottomRef.current?.scrollIntoView({ behavior: "auto" });
-  }
-}, 0);
+   api.get(`/messages/${user._id}`).then((res) => {
+  setMessages(res.data || []);
+  seenSet.current.clear();
+  isNearBottomRef.current = true;
 
-    });
+  requestAnimationFrame(() => {
+    scrollToBottom(false); // instant on open
+  });
+});
+
   }, [user]);
 
   /* ================= SOCKET ================= */
   useEffect(() => {
     if (!socket || !user) return;
 
-    const onNewMessage = (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    };
+   const onNewMessage = (msg) => {
+  setMessages((prev) => [...prev, msg]);
+
+  requestAnimationFrame(() => {
+    if (isNearBottomRef.current) {
+      scrollToBottom(true);
+      setUnreadCount(0);
+    } else {
+      setUnreadCount((c) => c + 1);
+    }
+  });
+};
+
+
 
     socket.on("newMessage", onNewMessage);
     socket.on("typing", () => setTyping(true));
@@ -51,16 +102,14 @@ export default function ChatWindow({ user, socket }) {
   }, [socket, user]);
 
   return (
-    <div
-  className="flex flex-col min-h-0 touch-pan-y"
-  style={{ contain: "layout size" }}
->
+    <div className="flex flex-col flex-1 min-h-0 h-full touch-pan-y">
+
 
 
       {/* ================= EMPTY STATE ================= */}
       {!user && (
-        <div
-          className="relative flex-1 "
+  <div className="relative flex-1 min-h-full overflow-hidden"
+
           onMouseMove={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -191,11 +240,11 @@ export default function ChatWindow({ user, socket }) {
         </div>
       )}
 
-      {/* ================= CHAT CONTENT ================= */}
-      {user && (
-        <>
-         <div
+     {user && (
+  <div className="flex flex-col flex-1 min-h-0">
+   <div
   ref={listRef}
+  onScroll={handleScroll}
   className="flex-1 min-h-0 overflow-y-auto px-4 py-4 relative"
   style={{
     overscrollBehavior: "contain",
@@ -203,37 +252,54 @@ export default function ChatWindow({ user, socket }) {
   }}
 >
 
-            {messages.map((msg) => (
-              <motion.div
-                key={msg._id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.18 }}
-                className="relative"
-              >
-                <Message msg={msg} />
-              </motion.div>
-            ))}
+      {messages.map((msg) => (
+        <motion.div
+          key={msg._id}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18 }}
+          className="relative"
+        >
+          <Message msg={msg} />
+        </motion.div>
+      ))}
 
-            {typing && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-xs text-gray-400 px-2"
-              >
-                typing…
-              </motion.div>
-            )}
-
-            <div ref={bottomRef} />
-          </div>
-
-          <div className="shrink-0 sticky bottom-0 z-20">
-  <MessageInput receiverId={user._id} socket={socket} />
-</div>
-
-        </>
+      {typing && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-xs text-gray-400 px-2"
+        >
+          typing…
+        </motion.div>
       )}
+
+      <div ref={bottomRef} />
+      {unreadCount > 0 && !isNearBottomRef.current && (
+  <button
+    onClick={() => {
+      scrollToBottom(true);
+      setUnreadCount(0);
+    }}
+    className="
+      fixed bottom-24 right-6 z-50
+      px-3 py-1.5 rounded-full
+      bg-primary text-white text-xs
+      shadow-lg animate-slide-up
+    "
+  >
+    ↓ {unreadCount} new
+  </button>
+)}
+
+    </div>
+
+    <div className="shrink-0 z-20">
+      <MessageInput receiverId={user._id} socket={socket} />
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
