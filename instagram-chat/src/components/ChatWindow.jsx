@@ -22,6 +22,17 @@ const [cursor, setCursor] = useState({ x: 50, y: 50 });
   const bottomRef = useRef(null);
   const seenSet = useRef(new Set());
 
+  useEffect(() => {
+  const markOptimistic = (e) => {
+    seenSet.current.add(e.detail);
+  };
+
+  window.addEventListener("optimistic-message", markOptimistic);
+  return () =>
+    window.removeEventListener("optimistic-message", markOptimistic);
+}, []);
+
+
   const { authUser } = useContext(AuthContext);
   const handleScroll = () => {
   const el = listRef.current;
@@ -106,44 +117,61 @@ useEffect(() => {
   }, [user]);
 
   /* ================= SOCKET ================= */
-  useEffect(() => {
-    if (!socket || !user) return;
+useEffect(() => {
+  if (!socket || !user) return;
 
   const onNewMessage = (msg) => {
-  setMessages((prev) => [...prev, msg]);
+    // ✅ DE-DUPLICATION
+    if (seenSet.current.has(msg._id)) return;
 
-  requestAnimationFrame(() => {
-    // ✅ MOBILE FIX: force scroll when sender is me
-    if (msg.senderId === authUser._id) {
-      scrollToBottom(true);
-      setUnreadCount(0);
-      return;
-    }
+    seenSet.current.add(msg._id);
 
-    if (isNearBottomRef.current) {
-      scrollToBottom(true);
-      setUnreadCount(0);
-    } else {
-      setUnreadCount((c) => c + 1);
-    }
-  });
-};
+    setMessages((prev) => [...prev, msg]);
 
+    requestAnimationFrame(() => {
+      if (msg.senderId === authUser._id || isNearBottomRef.current) {
+        scrollToBottom(true);
+        setUnreadCount(0);
+      } else {
+        setUnreadCount((c) => c + 1);
+      }
+    });
+  };
 
+  // ✅ RECONNECT REPLAY SAFETY
+  const handleReconnect = async () => {
+    const res = await api.get(`/messages/${user._id}`);
+    const incoming = res.data || [];
 
-      // ✅ HARDEN LISTENER (MOBILE FIX)
+    setMessages((prev) => {
+      const map = new Map(prev.map((m) => [m._id, m]));
+
+      incoming.forEach((m) => {
+        map.set(m._id, m);
+        seenSet.current.add(m._id);
+      });
+
+      return Array.from(map.values());
+    });
+
+    requestAnimationFrame(() => {
+      scrollToBottom(false);
+    });
+  };
+
+  // ✅ HARDEN LISTENERS (MOBILE FIX)
   socket.off("newMessage");
-    socket.on("newMessage", onNewMessage);
+  socket.on("newMessage", onNewMessage);
 
-    socket.on("typing", () => setTyping(true));
-    socket.on("stopTyping", () => setTyping(false));
+  socket.off("connect");
+  socket.on("connect", handleReconnect);
 
-    return () => {
-      socket.off("newMessage", onNewMessage);
-      socket.off("typing");
-      socket.off("stopTyping");
-    };
-  }, [socket, user]);
+  return () => {
+    socket.off("newMessage", onNewMessage);
+    socket.off("connect", handleReconnect);
+  };
+}, [socket, user]);
+
 
   return (
     <div className="flex flex-col flex-1 min-h-0 h-full touch-pan-y">

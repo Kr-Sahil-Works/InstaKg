@@ -43,17 +43,29 @@ export default function MessageInput({ receiverId, socket }) {
     setText("");
     textareaRef.current?.focus();
 
-    try {
-      const res = await api.post(`/messages/${receiverId}`, {
-        message: msg,
-      });
-      socket?.emit("newMessage", res.data);
-      socket?.emit("stopTyping", receiverId);
-       // ✅ MOBILE FIX — force scroll
-    window.dispatchEvent(new Event("force-scroll-bottom"));
-    } finally {
-      setTimeout(() => setSending(false), 150);
-    }
+   try {
+  const res = await api.post(`/messages/${receiverId}`, {
+    message: msg,
+  });
+
+  // ✅ emit to other user
+  socket?.emit("newMessage", res.data);
+
+  // ✅ mark locally as seen to avoid duplicate replay
+  window.dispatchEvent(
+    new CustomEvent("optimistic-message", {
+      detail: res.data._id,
+    })
+  );
+
+  socket?.emit("stopTyping", receiverId);
+
+  // ✅ MOBILE FIX — force scroll after send
+  window.dispatchEvent(new Event("force-scroll-bottom"));
+} finally {
+  setTimeout(() => setSending(false), 150);
+}
+
   };
 
   /* ================= INPUT ================= */
