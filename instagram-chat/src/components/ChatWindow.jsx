@@ -78,36 +78,35 @@ useEffect(() => {
 
 useEffect(() => {
   if (!socket || !user) return;
-
 const handleNewMessage = (msg) => {
- const me = authUser._id;
-const other = user._id;
+  const me = authUser._id;
+  const other = user._id;
 
-// ✅ message must be between me <-> selected user
-if (
-  !(
-    (msg.senderId === me && msg.receiverId === other) ||
-    (msg.senderId === other && msg.receiverId === me)
-  )
-) {
-  return;
-}
+  // ✅ message must be between me <-> selected user
+  if (
+    !(
+      (msg.senderId === me && msg.receiverId === other) ||
+      (msg.senderId === other && msg.receiverId === me)
+    )
+  ) {
+    return;
+  }
 
+  // ✅ ADD — auto mark seen if message is from other user
+  if (
+    msg.senderId === other &&
+    msg.receiverId === me &&
+    !msg.seen
+  ) {
+    socket.emit("messageSeen", msg._id);
+  }
 
   setMessages((prev) => {
-    // ✅ dedupe by clientId (primary)
-    if (
-      msg.clientId &&
-      prev.some((m) => m.clientId === msg.clientId)
-    ) {
+    if (msg.clientId && prev.some((m) => m.clientId === msg.clientId)) {
       return prev;
     }
 
-    // ✅ fallback dedupe by Mongo _id
-    if (
-      msg._id &&
-      prev.some((m) => m._id === msg._id)
-    ) {
+    if (msg._id && prev.some((m) => m._id === msg._id)) {
       return prev;
     }
 
@@ -121,9 +120,31 @@ if (
   }
 };
 
+
   socket.on("newMessage", handleNewMessage);
+  socket.on("messageSeen", (messageId) => {
+  setMessages((prev) =>
+    prev.map((m) =>
+      m._id === messageId
+        ? { ...m, seen: true, delivered: true }
+        : m
+    )
+  );
+});
+
+  socket.on("messagesSeenUpdate", ({ by }) => {
+  setMessages((prev) =>
+    prev.map((m) =>
+      m.receiverId === by
+        ? { ...m, seen: true, delivered: true }
+        : m
+    )
+  );
+});
+
 
   return () => {
+    socket.off("messageSeen");
     socket.off("newMessage", handleNewMessage);
   };
 }, [socket, user?._id]);

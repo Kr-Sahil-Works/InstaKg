@@ -497,20 +497,49 @@ const [hasOverflow, setHasOverflow] = useState(false);
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={() => setInfoOpen(false)}
       />
-      <div className="relative bg-background rounded-xl p-4 text-xs shadow-xl">
+
+      <div className="relative bg-background rounded-xl p-4 text-xs shadow-xl space-y-1">
         <div>
           <b>Status:</b>{" "}
-          {msg.seen ? "Seen" : msg.delivered ? "Delivered" : "Sent"}
+          {msg.seen
+            ? "Seen"
+            : msg.delivered
+            ? "Delivered"
+            : "Sent"}
         </div>
+
+        {msg.seenAt && (
+          <div>
+            <b>Seen at:</b>{" "}
+            {new Date(msg.seenAt).toLocaleString()}
+          </div>
+        )}
+
         <div>
           <b>Sent at:</b>{" "}
           {new Date(msg.createdAt).toLocaleString()}
         </div>
+
+        {/* ✅ ADDED — EMOJI INFO */}
+        {msg.reactions && msg.reactions.length > 0 && (
+          <div className="pt-1">
+            <b>Reactions:</b>
+            <div className="mt-1 space-y-0.5">
+              {msg.reactions.map((r, i) => (
+                <div key={i}>
+                  {r.emoji}{" "}
+                  {String(r.userId) === String(authUser._id)
+                    ? "me"
+                    : "them"}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>,
     document.body
   )}
-
 
 
     </>

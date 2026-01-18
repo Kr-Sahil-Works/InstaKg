@@ -76,19 +76,27 @@ export const initSocket = (server) => {
     });
 
     /* ✅ MESSAGE SEEN */
-    socket.on("messageSeen", async (messageId) => {
-      const msg = await Message.findByIdAndUpdate(
-        messageId,
-        { seen: true },
-        { new: true }
-      );
-      if (!msg) return;
+   socket.on("messageSeen", async (messageId) => {
+  const msg = await Message.findByIdAndUpdate(
+    messageId,
+    {
+      $set: {
+        seen: true,
+        delivered: true,
+        seenAt: new Date(),
+      },
+    },
+    { new: true }
+  );
 
-      io.to(msg.senderId.toString()).emit(
-        "messageSeen",
-        msg._id
-      );
-    });
+  if (!msg) return;
+
+  io.to(msg.senderId.toString()).emit(
+    "messageSeen",
+    msg._id
+  );
+});
+
 
     socket.on("typing", (receiverId) => {
       io.to(receiverId).emit("typing", userId);
