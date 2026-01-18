@@ -12,10 +12,7 @@ const userSocketMap = new Map();
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: [
-        "http://localhost:5173",
-        "https://musicconnect.onrender.com",
-      ],
+      origin: "https://instakg.onrender.com",
       credentials: true,
     },
   });

@@ -28,7 +28,6 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
       "https://instakg.onrender.com",
     ],
     credentials: true,
@@ -44,7 +43,7 @@ app.use((req, res, next) => {
       "img-src 'self' data: https:",
       "style-src 'self' 'unsafe-inline'",
       "script-src 'self'",
-      "connect-src 'self' https://instakg.onrender.com wss://instakg.onrender.com ws://localhost:5000 http://localhost:5000",
+      "connect-src 'self' https://instakg.onrender.com wss://instakg.onrender.com",
       "font-src 'self' data:",
     ].join("; ")
   );
