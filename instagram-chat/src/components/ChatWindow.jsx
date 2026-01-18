@@ -58,7 +58,7 @@ useEffect(() => {
 useEffect(() => {
   if (!socket || !user) return;
 
- const handleNewMessage = (msg) => {
+const handleNewMessage = (msg) => {
   // ✅ ignore messages not for this chat
   if (
     msg.senderId !== user._id &&
@@ -75,15 +75,7 @@ useEffect(() => {
 
     return [...prev, msg];
   });
-
-  if (isNearBottomRef.current) {
-    requestAnimationFrame(() => scrollToBottom(true));
-  } else {
-    setUnreadCount((c) => c + 1);
-  }
-};
-
-    
+  
 
 if (isNearBottomRef.current) {
   requestAnimationFrame(() => scrollToBottom(true));
