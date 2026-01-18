@@ -33,46 +33,46 @@ export default function MessageInput({ receiverId, socket }) {
   const textareaRef = useRef(null);
   const emojiRef = useRef(null);
   const clipboardRef = useRef(null);
-  const sendingRef = useRef(false);
 
+  /* 🔒 HARD LOCK — DUPLICATE SEND FIX (MANDATORY) */
+  const sendingRef = useRef(false);
 
   /* ================= SEND ================= */
   const send = async (value) => {
     const msg = value.trim();
     if (!msg) return;
-if (sendingRef.current) return;
-sendingRef.current = true;
 
+    // 🔒 HARD GUARD (FIXES LAPTOP DUPLICATES)
+    if (sendingRef.current) return;
+    sendingRef.current = true;
 
     setSending(true);
     setText("");
     textareaRef.current?.focus();
 
-   try {
- const res = await api.post(`/messages/${receiverId}`, {
-  message: msg,
-});
+    try {
+      const res = await api.post(`/messages/${receiverId}`, {
+        message: msg,
+      });
 
-/* 🔥 FIX 1 — UPDATE UI IMMEDIATELY (MANDATORY) */
-window.dispatchEvent(
-  new CustomEvent("local-message", {
-    detail: res.data,
-  })
-);
+      /* UPDATE UI IMMEDIATELY */
+      window.dispatchEvent(
+        new CustomEvent("local-message", {
+          detail: res.data,
+        })
+      );
 
-/* 🔥 FIX 2 — SEND TO SOCKET (OTHER USER) */
-socket?.emit("newMessage", res.data);
+      /* SEND TO OTHER USER */
+      socket?.emit("newMessage", res.data);
 
-/* 🔥 FIX 3 — STOP TYPING */
-socket?.emit("stopTyping", receiverId);
-
-} finally {
-  setTimeout(() => {
-    sendingRef.current = false;
-    setSending(false);
-  }, 200);
-}
-
+      /* STOP TYPING */
+      socket?.emit("stopTyping", receiverId);
+    } finally {
+      setTimeout(() => {
+        sendingRef.current = false;
+        setSending(false);
+      }, 200);
+    }
   };
 
   /* ================= INPUT ================= */
@@ -87,14 +87,14 @@ socket?.emit("stopTyping", receiverId);
   };
 
   const handleKeyDown = (e) => {
-   if (e.key === "Enter" && !e.shiftKey) {
-  e.preventDefault();
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
 
-  if (!sendingRef.current) {
-    send(e.currentTarget.value);
-  }
-}
-
+      // 🔒 PREVENT ENTER DOUBLE FIRE
+      if (!sendingRef.current) {
+        send(e.currentTarget.value);
+      }
+    }
   };
 
   /* ================= LONG PRESS SAVE ================= */
