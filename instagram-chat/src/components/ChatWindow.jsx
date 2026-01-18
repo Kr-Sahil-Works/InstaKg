@@ -50,21 +50,31 @@ const [cursor, setCursor] = useState({ x: 50, y: 50 });
 useEffect(() => {
   if (!user) return;
 
-  const handleVisibility = () => {
-    if (document.visibilityState === "visible") {
-      api.get(`/messages/${user._id}`).then((res) => {
-        setMessages(res.data || []);
-        requestAnimationFrame(() => {
-          scrollToBottom(false);
-        });
+  const handleVisibility = async () => {
+    if (document.visibilityState !== "visible") return;
+
+    const res = await api.get(`/messages/${user._id}`);
+    const incoming = res.data || [];
+
+    setMessages((prev) => {
+      const map = new Map(prev.map((m) => [m._id, m]));
+      incoming.forEach((m) => {
+        map.set(m._id, m);
+        seenSet.current.add(m._id);
       });
-    }
+      return Array.from(map.values());
+    });
+
+    requestAnimationFrame(() => {
+      scrollToBottom(false);
+    });
   };
 
   document.addEventListener("visibilitychange", handleVisibility);
   return () =>
     document.removeEventListener("visibilitychange", handleVisibility);
 }, [user]);
+
 
 useEffect(() => {
   const forceScroll = () => {

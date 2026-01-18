@@ -75,9 +75,22 @@ export const initSocket = (server) => {
       io.to(receiverId).emit("typing", userId);
     });
 
+    
     socket.on("stopTyping", (receiverId) => {
       io.to(receiverId).emit("stopTyping", userId);
     });
+
+    /* ✅ FIX 1 — SERVER RE-BROADCAST newMessage (CRITICAL FOR MOBILE) */
+socket.on("newMessage", async (msg) => {
+  if (!msg || !msg.receiverId || !msg.senderId) return;
+
+  // send to receiver
+  io.to(msg.receiverId.toString()).emit("newMessage", msg);
+
+  // send back to sender (for multi-device sync)
+  io.to(msg.senderId.toString()).emit("newMessage", msg);
+});
+
 
     socket.on("disconnect", async () => {
       const sockets = userSocketMap.get(userId);
