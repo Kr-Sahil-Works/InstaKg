@@ -10,6 +10,7 @@ export default function ChatWindow({ user, socket }) {
   const [typing, setTyping] = useState(false);
   const isNearBottomRef = useRef(true);
   const [unreadCount, setUnreadCount] = useState(0);
+const [cursor, setCursor] = useState({ x: 50, y: 50 });
 
  const scrollToBottom = (smooth = true) => {
   bottomRef.current?.scrollIntoView({
@@ -35,6 +36,20 @@ export default function ChatWindow({ user, socket }) {
 
   if (nearBottom) setUnreadCount(0);
 };
+useEffect(() => {
+  const forceScroll = () => {
+    requestAnimationFrame(() => {
+      scrollToBottom(true);
+      setUnreadCount(0);
+      isNearBottomRef.current = true;
+    });
+  };
+
+  window.addEventListener("force-scroll-bottom", forceScroll);
+  return () =>
+    window.removeEventListener("force-scroll-bottom", forceScroll);
+}, []);
+
 
 useEffect(() => {
   if (!user) return;
@@ -75,10 +90,17 @@ useEffect(() => {
   useEffect(() => {
     if (!socket || !user) return;
 
-   const onNewMessage = (msg) => {
+  const onNewMessage = (msg) => {
   setMessages((prev) => [...prev, msg]);
 
   requestAnimationFrame(() => {
+    // ✅ MOBILE FIX: force scroll when sender is me
+    if (msg.senderId === authUser._id) {
+      scrollToBottom(true);
+      setUnreadCount(0);
+      return;
+    }
+
     if (isNearBottomRef.current) {
       scrollToBottom(true);
       setUnreadCount(0);
@@ -87,6 +109,7 @@ useEffect(() => {
     }
   });
 };
+
 
 
 

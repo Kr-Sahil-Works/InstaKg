@@ -213,13 +213,17 @@ const [hasOverflow, setHasOverflow] = useState(false);
     if (!showMenu || !bubbleRef.current) return;
 
     const rect = bubbleRef.current.getBoundingClientRect();
+    const isNearBottom = rect.bottom + 200 > window.innerHeight;
 
-    setMenuPos({
-      top: rect.bottom + 8,
-      left: mine ? rect.right - 160 : rect.left,
-      emojiTop: rect.top - 48,
-      emojiLeft: mine ? rect.right - 180 : rect.left,
-    });
+
+   setMenuPos({
+  top: isNearBottom ? rect.top - 160 : rect.bottom + 8,
+  left: mine ? rect.right - 160 : rect.left,
+
+  emojiTop: isNearBottom ? rect.bottom + 8 : rect.top - 48,
+  emojiLeft: mine ? rect.right - 180 : rect.left,
+});
+
   }, [showMenu, mine]);
 
   return (

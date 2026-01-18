@@ -49,6 +49,8 @@ export default function MessageInput({ receiverId, socket }) {
       });
       socket?.emit("newMessage", res.data);
       socket?.emit("stopTyping", receiverId);
+       // ✅ MOBILE FIX — force scroll
+    window.dispatchEvent(new Event("force-scroll-bottom"));
     } finally {
       setTimeout(() => setSending(false), 150);
     }
