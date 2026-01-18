@@ -55,22 +55,6 @@ useEffect(() => {
     window.removeEventListener("local-message", onLocalMessage);
 }, []);
 
-
-useEffect(() => {
-  const forceScroll = () => {
-    requestAnimationFrame(() => {
-      scrollToBottom(true);
-      setUnreadCount(0);
-      isNearBottomRef.current = true;
-    });
-  };
-
-  window.addEventListener("force-scroll-bottom", forceScroll);
-  return () =>
-    window.removeEventListener("force-scroll-bottom", forceScroll);
-}, []);
-
-
 useEffect(() => {
   if (!socket || !user) return;
 
@@ -85,9 +69,12 @@ useEffect(() => {
 
     setMessages((prev) => [...prev, msg]);
 
-    requestAnimationFrame(() => {
-      scrollToBottom(true);
-    });
+if (isNearBottomRef.current) {
+  requestAnimationFrame(() => scrollToBottom(true));
+} else {
+  setUnreadCount((c) => c + 1);
+}
+
   };
 
   socket.on("newMessage", handleNewMessage);
@@ -102,42 +89,28 @@ useEffect(() => {
 
 
   /* ================= LOAD MESSAGES ================= */
-  useEffect(() => {
-    if (!user) return;
+ useEffect(() => {
+  if (!user) return;
 
-   api.get(`/messages/${user._id}`).then((res) => {
-  setMessages(res.data || []);
-  seenSet.current.clear();
-  isNearBottomRef.current = true;
+  let cancelled = false;
 
-  requestAnimationFrame(() => {
-    scrollToBottom(false); // instant on open
-  });
-});
+  api.get(`/messages/${user._id}`).then((res) => {
+    if (cancelled) return;
 
-  }, [user]);
-
-  /* ================= SOCKET ================= */
-useEffect(() => {
-  if (!socket || !user) return;
-
-  const onNewMessage = (msg) => {
-    setMessages((prev) => [...prev, msg]);
+    setMessages(res.data || []);
+    isNearBottomRef.current = true;
 
     requestAnimationFrame(() => {
-      scrollToBottom(true);
-      setUnreadCount(0);
+      scrollToBottom(false);
     });
-  };
+  });
 
-  // ✅ ADD listener ONCE
-  socket.on("newMessage", onNewMessage);
-
-  // ✅ CLEANUP ONLY YOUR HANDLER
   return () => {
-    socket.off("newMessage", onNewMessage);
+    cancelled = true;
   };
-}, [socket, user?._id]);
+}, [user?._id]);
+
+  /* ================= SOCKET ================= */
 
   return (
     <div className="flex flex-col flex-1 min-h-0 h-full touch-pan-y">

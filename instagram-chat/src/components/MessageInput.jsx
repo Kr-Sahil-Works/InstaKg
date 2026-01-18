@@ -33,11 +33,16 @@ export default function MessageInput({ receiverId, socket }) {
   const textareaRef = useRef(null);
   const emojiRef = useRef(null);
   const clipboardRef = useRef(null);
+  const sendingRef = useRef(false);
+
 
   /* ================= SEND ================= */
   const send = async (value) => {
     const msg = value.trim();
-    if (!msg || sending) return;
+    if (!msg) return;
+if (sendingRef.current) return;
+sendingRef.current = true;
+
 
     setSending(true);
     setText("");
@@ -61,11 +66,11 @@ socket?.emit("newMessage", res.data);
 /* 🔥 FIX 3 — STOP TYPING */
 socket?.emit("stopTyping", receiverId);
 
-/* 🔥 FIX 4 — FORCE SCROLL */
-window.dispatchEvent(new Event("force-scroll-bottom"));
-
 } finally {
-  setTimeout(() => setSending(false), 150);
+  setTimeout(() => {
+    sendingRef.current = false;
+    setSending(false);
+  }, 200);
 }
 
   };
@@ -82,10 +87,14 @@ window.dispatchEvent(new Event("force-scroll-bottom"));
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      send(e.currentTarget.value);
-    }
+   if (e.key === "Enter" && !e.shiftKey) {
+  e.preventDefault();
+
+  if (!sendingRef.current) {
+    send(e.currentTarget.value);
+  }
+}
+
   };
 
   /* ================= LONG PRESS SAVE ================= */
