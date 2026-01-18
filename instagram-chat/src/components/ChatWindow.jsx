@@ -5,7 +5,11 @@ import MessageInput from "./MessageInput";
 import { AuthContext } from "../context/AuthContext";
 import { motion } from "framer-motion";
 
-export default function ChatWindow({ user, socket }) {
+import { SocketContext } from "../context/SocketContext";
+
+export default function ChatWindow({ user }) {
+  const { socket } = useContext(SocketContext);
+
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
   const isNearBottomRef = useRef(true);
@@ -68,20 +72,31 @@ useEffect(() => {
 
 
 useEffect(() => {
-  if (!user) return;
+  if (!socket || !user) return;
 
-  // wait for React commit + layout + paint
-  requestAnimationFrame(() => {
+  const handleNewMessage = (msg) => {
+    // ✅ only add messages for current chat
+    if (
+      msg.senderId !== user._id &&
+      msg.receiverId !== user._id
+    ) {
+      return;
+    }
+
+    setMessages((prev) => [...prev, msg]);
+
     requestAnimationFrame(() => {
-      // always allow scroll on first open
-      if (isNearBottomRef.current) {
-        bottomRef.current?.scrollIntoView({
-          behavior: messages.length < 5 ? "auto" : "smooth",
-        });
-      }
+      scrollToBottom(true);
     });
-  });
-}, [messages.length, user]);
+  };
+
+  socket.on("newMessage", handleNewMessage);
+
+  return () => {
+    socket.off("newMessage", handleNewMessage);
+  };
+}, [socket, user?._id]);
+
 
 
 

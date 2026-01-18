@@ -233,7 +233,7 @@ const onlineUsers = [];
   }}
 >
 
-          <ChatWindow user={selectedUser} socket={socket} />
+          <ChatWindow user={selectedUser} />
         </motion.div>
       </section>
 

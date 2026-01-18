@@ -44,17 +44,26 @@ export default function MessageInput({ receiverId, socket }) {
     textareaRef.current?.focus();
 
    try {
-  const res = await api.post(`/messages/${receiverId}`, {
-    message: msg,
-  });
+ const res = await api.post(`/messages/${receiverId}`, {
+  message: msg,
+});
 
-  // ✅ emit to other user
-  socket?.emit("newMessage", res.data);
+/* 🔥 FIX 1 — UPDATE UI IMMEDIATELY (MANDATORY) */
+window.dispatchEvent(
+  new CustomEvent("local-message", {
+    detail: res.data,
+  })
+);
 
-  socket?.emit("stopTyping", receiverId);
+/* 🔥 FIX 2 — SEND TO SOCKET (OTHER USER) */
+socket?.emit("newMessage", res.data);
 
-  // ✅ MOBILE FIX — force scroll after send
-  window.dispatchEvent(new Event("force-scroll-bottom"));
+/* 🔥 FIX 3 — STOP TYPING */
+socket?.emit("stopTyping", receiverId);
+
+/* 🔥 FIX 4 — FORCE SCROLL */
+window.dispatchEvent(new Event("force-scroll-bottom"));
+
 } finally {
   setTimeout(() => setSending(false), 150);
 }
