@@ -20,17 +20,6 @@ const [cursor, setCursor] = useState({ x: 50, y: 50 });
 
   const listRef = useRef(null);
   const bottomRef = useRef(null);
-  const seenSet = useRef(new Set());
-
-  useEffect(() => {
-  const markOptimistic = (e) => {
-    seenSet.current.add(e.detail);
-  };
-
-  window.addEventListener("optimistic-message", markOptimistic);
-  return () =>
-    window.removeEventListener("optimistic-message", markOptimistic);
-}, []);
 
 
   const { authUser } = useContext(AuthContext);
@@ -47,33 +36,20 @@ const [cursor, setCursor] = useState({ x: 50, y: 50 });
 
   if (nearBottom) setUnreadCount(0);
 };
+
 useEffect(() => {
-  if (!user) return;
-
-  const handleVisibility = async () => {
-    if (document.visibilityState !== "visible") return;
-
-    const res = await api.get(`/messages/${user._id}`);
-    const incoming = res.data || [];
-
-    setMessages((prev) => {
-      const map = new Map(prev.map((m) => [m._id, m]));
-      incoming.forEach((m) => {
-        map.set(m._id, m);
-        seenSet.current.add(m._id);
-      });
-      return Array.from(map.values());
-    });
+  const onLocalMessage = (e) => {
+    setMessages((prev) => [...prev, e.detail]);
 
     requestAnimationFrame(() => {
-      scrollToBottom(false);
+      scrollToBottom(true);
     });
   };
 
-  document.addEventListener("visibilitychange", handleVisibility);
+  window.addEventListener("local-message", onLocalMessage);
   return () =>
-    document.removeEventListener("visibilitychange", handleVisibility);
-}, [user]);
+    window.removeEventListener("local-message", onLocalMessage);
+}, []);
 
 
 useEffect(() => {
@@ -131,57 +107,22 @@ useEffect(() => {
   if (!socket || !user) return;
 
   const onNewMessage = (msg) => {
-    // ✅ DE-DUPLICATION
-    if (seenSet.current.has(msg._id)) return;
-
-    seenSet.current.add(msg._id);
-
     setMessages((prev) => [...prev, msg]);
 
     requestAnimationFrame(() => {
-      if (msg.senderId === authUser._id || isNearBottomRef.current) {
-        scrollToBottom(true);
-        setUnreadCount(0);
-      } else {
-        setUnreadCount((c) => c + 1);
-      }
+      scrollToBottom(true);
+      setUnreadCount(0);
     });
   };
 
-  // ✅ RECONNECT REPLAY SAFETY
-  const handleReconnect = async () => {
-    const res = await api.get(`/messages/${user._id}`);
-    const incoming = res.data || [];
-
-    setMessages((prev) => {
-      const map = new Map(prev.map((m) => [m._id, m]));
-
-      incoming.forEach((m) => {
-        map.set(m._id, m);
-        seenSet.current.add(m._id);
-      });
-
-      return Array.from(map.values());
-    });
-
-    requestAnimationFrame(() => {
-      scrollToBottom(false);
-    });
-  };
-
-  // ✅ HARDEN LISTENERS (MOBILE FIX)
-  socket.off("newMessage");
+  // ✅ ADD listener ONCE
   socket.on("newMessage", onNewMessage);
 
-  socket.off("connect");
-  socket.on("connect", handleReconnect);
-
+  // ✅ CLEANUP ONLY YOUR HANDLER
   return () => {
     socket.off("newMessage", onNewMessage);
-    socket.off("connect", handleReconnect);
   };
-}, [socket, user]);
-
+}, [socket, user?._id]);
 
   return (
     <div className="flex flex-col flex-1 min-h-0 h-full touch-pan-y">

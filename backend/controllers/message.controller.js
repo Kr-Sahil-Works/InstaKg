@@ -48,14 +48,17 @@ export const sendMessage = async (req, res) => {
 
     const payload = newMessage.toObject();
 
-    [senderId, receiverId].forEach((uid) => {
-      getReceiverSocketIds(uid.toString()).forEach((sid) =>
-        io.to(sid).emit("newMessage", payload)
-      );
-    });
+    process.nextTick(() => {
+  [senderId, receiverId].forEach((uid) => {
+    getReceiverSocketIds(uid.toString()).forEach((sid) =>
+      io.to(sid).emit("newMessage", payload)
+    );
+  });
+});
+
 
     getReceiverSocketIds(receiverId.toString()).forEach((sid) =>
-      io.to(sid).emit("deliverMessage", {
+      io.to(sid).emit("messageDelivered", {
         messageId: newMessage._id,
         senderId,
       })

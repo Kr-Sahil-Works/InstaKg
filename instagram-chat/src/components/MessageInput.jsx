@@ -51,13 +51,6 @@ export default function MessageInput({ receiverId, socket }) {
   // ✅ emit to other user
   socket?.emit("newMessage", res.data);
 
-  // ✅ mark locally as seen to avoid duplicate replay
-  window.dispatchEvent(
-    new CustomEvent("optimistic-message", {
-      detail: res.data._id,
-    })
-  );
-
   socket?.emit("stopTyping", receiverId);
 
   // ✅ MOBILE FIX — force scroll after send

@@ -16,21 +16,22 @@ export const SocketProvider = ({ children }) => {
     }
 
     const s = io("http://localhost:5000", {
-      withCredentials: true,
+  withCredentials: true,
+  transports: ["websocket"],
+  upgrade: false,
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
+});
 
-      // ✅ MOBILE REALTIME FIXES (MANDATORY)
-      transports: ["websocket"],
-      upgrade: false,
+s.on("connect", () => {
+  s.emit("join", authUser._id);
+});
 
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
+setSocket(s);
 
-      timeout: 20000,
-    });
-
-    setSocket(s);
 
     return () => {
       s.disconnect();

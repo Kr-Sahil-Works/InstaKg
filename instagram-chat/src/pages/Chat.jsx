@@ -5,7 +5,8 @@ import ThemeToggle from "../components/ThemeToggle";
 import LogoutButton from "../components/LogoutButton";
 import Avatar from "../components/Avatar";
 import { AuthContext } from "../context/AuthContext";
-import { useSocket } from "../hooks/useSocket";
+import { SocketContext } from "../context/SocketContext";
+
 import { HiStatusOnline } from "react-icons/hi";
 import api from "../api/axios";
 import { formatLastSeen } from "../utils/formatLastSeen";
@@ -22,7 +23,9 @@ const [keyboardOpen, setKeyboardOpen] = useState(false);
   
 
   const { authUser, loading } = useContext(AuthContext);
-  const { socket, onlineUsers = [] } = useSocket();
+const { socket } = useContext(SocketContext);
+const onlineUsers = [];
+
 
   const lastFetchedUser = useRef(null);
 

@@ -37,6 +37,15 @@ export const initSocket = (server) => {
   io.on("connection", async (socket) => {
     const userId = socket.userId;
 
+    /* =======================
+       ✅ FIX A — ROOM JOIN (MANDATORY)
+       ======================= */
+    socket.on("join", (uid) => {
+      if (!uid) return;
+      socket.join(uid);
+    });
+
+    // existing join (kept)
     socket.join(userId);
 
     await User.findByIdAndUpdate(userId, { lastSeen: null });
@@ -47,6 +56,19 @@ export const initSocket = (server) => {
     userSocketMap.get(userId).add(socket.id);
 
     io.emit("getOnlineUsers", [...userSocketMap.keys()]);
+
+    /* =======================
+       ✅ FIX B — RECONNECT MESSAGE SYNC (OPTIONAL BUT STRONG)
+       ======================= */
+    socket.on("sync", async (uid) => {
+      if (!uid) return;
+
+      const msgs = await Message.find({
+        receiverId: uid,
+      }).sort({ createdAt: 1 });
+
+      socket.emit("syncMessages", msgs);
+    });
 
     /* ✅ DELIVERED ACK */
     socket.on("messageDelivered", ({ messageId, senderId }) => {
@@ -75,22 +97,17 @@ export const initSocket = (server) => {
       io.to(receiverId).emit("typing", userId);
     });
 
-    
     socket.on("stopTyping", (receiverId) => {
       io.to(receiverId).emit("stopTyping", userId);
     });
 
-    /* ✅ FIX 1 — SERVER RE-BROADCAST newMessage (CRITICAL FOR MOBILE) */
-socket.on("newMessage", async (msg) => {
-  if (!msg || !msg.receiverId || !msg.senderId) return;
+    /* ✅ EXISTING SERVER RE-BROADCAST (KEPT AS REQUESTED) */
+    socket.on("newMessage", async (msg) => {
+      if (!msg || !msg.receiverId || !msg.senderId) return;
 
-  // send to receiver
-  io.to(msg.receiverId.toString()).emit("newMessage", msg);
-
-  // send back to sender (for multi-device sync)
-  io.to(msg.senderId.toString()).emit("newMessage", msg);
-});
-
+      io.to(msg.receiverId.toString()).emit("newMessage", msg);
+      io.to(msg.senderId.toString()).emit("newMessage", msg);
+    });
 
     socket.on("disconnect", async () => {
       const sockets = userSocketMap.get(userId);
