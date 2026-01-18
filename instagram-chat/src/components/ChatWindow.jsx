@@ -80,13 +80,19 @@ useEffect(() => {
   if (!socket || !user) return;
 
 const handleNewMessage = (msg) => {
-  // ✅ ignore messages not for this chat
-  if (
-    msg.senderId !== user._id &&
-    msg.receiverId !== user._id
-  ) {
-    return;
-  }
+ const me = authUser._id;
+const other = user._id;
+
+// ✅ message must be between me <-> selected user
+if (
+  !(
+    (msg.senderId === me && msg.receiverId === other) ||
+    (msg.senderId === other && msg.receiverId === me)
+  )
+) {
+  return;
+}
+
 
   setMessages((prev) => {
     // ✅ dedupe by clientId (primary)
