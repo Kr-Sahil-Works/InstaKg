@@ -17,6 +17,18 @@ export const useSocket = () => {
 
   return () => socket.off("connect", handleConnect);
 }, [socket]);
+useEffect(() => {
+  if (!socket) return;
+
+  // ✅ MOBILE HEARTBEAT — keep socket alive
+  const interval = setInterval(() => {
+    if (socket.connected) {
+      socket.emit("ping");
+    }
+  }, 15000); // every 15s (mobile-safe)
+
+  return () => clearInterval(interval);
+}, [socket]);
 
 
   return { socket, onlineUsers };
