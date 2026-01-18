@@ -41,6 +41,8 @@ export default function MessageInput({ receiverId, socket }) {
   const send = async (value) => {
     const msg = value.trim();
     if (!msg) return;
+    const clientId = crypto.randomUUID();
+
 
     // 🔒 HARD GUARD (FIXES LAPTOP DUPLICATES)
     if (sendingRef.current) return;
@@ -57,13 +59,22 @@ export default function MessageInput({ receiverId, socket }) {
 
       /* UPDATE UI IMMEDIATELY */
       window.dispatchEvent(
-        new CustomEvent("local-message", {
-          detail: res.data,
-        })
-      );
+  new CustomEvent("local-message", {
+    detail: {
+      ...res.data,
+      clientId,
+      _optimistic: true,
+    },
+  })
+);
+
 
       /* SEND TO OTHER USER */
-      socket?.emit("newMessage", res.data);
+     socket?.emit("newMessage", {
+  ...res.data,
+  clientId,
+});
+
 
       /* STOP TYPING */
       socket?.emit("stopTyping", receiverId);

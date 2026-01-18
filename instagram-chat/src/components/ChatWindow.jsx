@@ -43,7 +43,27 @@ const [cursor, setCursor] = useState({ x: 50, y: 50 });
 
 useEffect(() => {
   const onLocalMessage = (e) => {
-    setMessages((prev) => [...prev, e.detail]);
+    const msg = e.detail;
+
+    setMessages((prev) => {
+      // ✅ dedupe by clientId first (optimistic message)
+      if (
+        msg.clientId &&
+        prev.some((m) => m.clientId === msg.clientId)
+      ) {
+        return prev;
+      }
+
+      // ✅ fallback dedupe by Mongo _id
+      if (
+        msg._id &&
+        prev.some((m) => m._id === msg._id)
+      ) {
+        return prev;
+      }
+
+      return [...prev, msg];
+    });
 
     requestAnimationFrame(() => {
       scrollToBottom(true);
@@ -54,6 +74,7 @@ useEffect(() => {
   return () =>
     window.removeEventListener("local-message", onLocalMessage);
 }, []);
+
 
 useEffect(() => {
   if (!socket || !user) return;
@@ -68,22 +89,31 @@ const handleNewMessage = (msg) => {
   }
 
   setMessages((prev) => {
-    // ✅ deduplicate by _id
-    if (prev.some((m) => m._id === msg._id)) {
+    // ✅ dedupe by clientId (primary)
+    if (
+      msg.clientId &&
+      prev.some((m) => m.clientId === msg.clientId)
+    ) {
+      return prev;
+    }
+
+    // ✅ fallback dedupe by Mongo _id
+    if (
+      msg._id &&
+      prev.some((m) => m._id === msg._id)
+    ) {
       return prev;
     }
 
     return [...prev, msg];
   });
-  
 
-if (isNearBottomRef.current) {
-  requestAnimationFrame(() => scrollToBottom(true));
-} else {
-  setUnreadCount((c) => c + 1);
-}
-
-  };
+  if (isNearBottomRef.current) {
+    requestAnimationFrame(() => scrollToBottom(true));
+  } else {
+    setUnreadCount((c) => c + 1);
+  }
+};
 
   socket.on("newMessage", handleNewMessage);
 
