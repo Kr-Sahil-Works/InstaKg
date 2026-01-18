@@ -15,16 +15,20 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    const s = io("http://localhost:5000", {
+   const s = io("http://localhost:5000", {
   withCredentials: true,
-  transports: ["websocket"],
-  upgrade: false,
+
+  // ✅ allow polling → websocket upgrade (MANDATORY)
+  transports: ["polling", "websocket"],
+
   reconnection: true,
   reconnectionAttempts: Infinity,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
+
   timeout: 20000,
 });
+
 
 s.on("connect", () => {
   s.emit("join", authUser._id);
