@@ -6,11 +6,18 @@ export const useSocket = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
 
   useEffect(() => {
-    if (!socket) return;
+  if (!socket) return;
 
-    socket.on("getOnlineUsers", setOnlineUsers);
-    return () => socket.off("getOnlineUsers");
-  }, [socket]);
+  const handleConnect = () => {
+    // force refresh online users + wake listeners
+    socket.emit("getOnlineUsers");
+  };
+
+  socket.on("connect", handleConnect);
+
+  return () => socket.off("connect", handleConnect);
+}, [socket]);
+
 
   return { socket, onlineUsers };
 };

@@ -37,6 +37,25 @@ const [cursor, setCursor] = useState({ x: 50, y: 50 });
   if (nearBottom) setUnreadCount(0);
 };
 useEffect(() => {
+  if (!user) return;
+
+  const handleVisibility = () => {
+    if (document.visibilityState === "visible") {
+      api.get(`/messages/${user._id}`).then((res) => {
+        setMessages(res.data || []);
+        requestAnimationFrame(() => {
+          scrollToBottom(false);
+        });
+      });
+    }
+  };
+
+  document.addEventListener("visibilitychange", handleVisibility);
+  return () =>
+    document.removeEventListener("visibilitychange", handleVisibility);
+}, [user]);
+
+useEffect(() => {
   const forceScroll = () => {
     requestAnimationFrame(() => {
       scrollToBottom(true);
@@ -112,8 +131,10 @@ useEffect(() => {
 
 
 
-
+      // ✅ HARDEN LISTENER (MOBILE FIX)
+  socket.off("newMessage");
     socket.on("newMessage", onNewMessage);
+
     socket.on("typing", () => setTyping(true));
     socket.on("stopTyping", () => setTyping(false));
 
