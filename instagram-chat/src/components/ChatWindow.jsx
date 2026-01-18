@@ -58,16 +58,32 @@ useEffect(() => {
 useEffect(() => {
   if (!socket || !user) return;
 
-  const handleNewMessage = (msg) => {
-    // ✅ only add messages for current chat
-    if (
-      msg.senderId !== user._id &&
-      msg.receiverId !== user._id
-    ) {
-      return;
+ const handleNewMessage = (msg) => {
+  // ✅ ignore messages not for this chat
+  if (
+    msg.senderId !== user._id &&
+    msg.receiverId !== user._id
+  ) {
+    return;
+  }
+
+  setMessages((prev) => {
+    // ✅ deduplicate by _id
+    if (prev.some((m) => m._id === msg._id)) {
+      return prev;
     }
 
-    setMessages((prev) => [...prev, msg]);
+    return [...prev, msg];
+  });
+
+  if (isNearBottomRef.current) {
+    requestAnimationFrame(() => scrollToBottom(true));
+  } else {
+    setUnreadCount((c) => c + 1);
+  }
+};
+
+    
 
 if (isNearBottomRef.current) {
   requestAnimationFrame(() => scrollToBottom(true));
