@@ -175,8 +175,7 @@ useEffect(() => {
     const offset =
       window.innerHeight - vv.height - vv.offsetTop;
 
-    setKbOffset(offset > 0 ? Math.min(offset, 320) : 0);
-
+    setKbOffset(offset > 0 ? offset : 0);
   };
 
   update();
