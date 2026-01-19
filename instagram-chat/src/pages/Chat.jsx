@@ -23,7 +23,34 @@ export default function Chat() {
 
   const { authUser, loading } = useContext(AuthContext);
 const { socket } = useContext(SocketContext);
-const onlineUsers = [];
+useEffect(() => {
+  if (!socket) return;
+
+  socket.on("onlineUsers", (users) => {
+    setOnlineUsers(users);
+  });
+
+  socket.on("userOnline", (userId) => {
+    setOnlineUsers((prev) =>
+      prev.includes(userId) ? prev : [...prev, userId]
+    );
+  });
+
+  socket.on("userOffline", (userId) => {
+    setOnlineUsers((prev) =>
+      prev.filter((id) => id !== userId)
+    );
+  });
+
+  return () => {
+    socket.off("onlineUsers");
+    socket.off("userOnline");
+    socket.off("userOffline");
+  };
+}, [socket]);
+
+const [onlineUsers, setOnlineUsers] = useState([]);
+
 
 
   const lastFetchedUser = useRef(null);
@@ -228,7 +255,7 @@ const onlineUsers = [];
             )}
 
             <ThemeToggle />
-            <LogoutButton />
+           {!selectedUser && <LogoutButton />}
           </div>
         </div>
 

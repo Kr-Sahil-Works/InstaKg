@@ -40,14 +40,17 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`
-          fixed md:static z-50
-          h-full w-72 flex flex-col
-          panel border-r border-black/20
-          transition-transform
-          ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        `}
-      >
+  className={`
+    fixed md:static z-50
+    h-full w-72 flex flex-col
+    bg-linear-to-b from-[#0f172a] to-[#020617]
+    text-white
+    border-r border-white/10
+    transition-transform
+    ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+  `}
+>
+
         {/* TOP BAR */}
         <div className="shrink-0 px-3 py-3 border-b border-black/20 flex gap-2">
          <motion.button
@@ -105,7 +108,14 @@ export default function Sidebar({
   });
 }}
 
-                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-black/10"
+                  className="
+  flex items-center gap-3
+  px-4 py-3 cursor-pointer
+  rounded-lg
+  hover:bg-white/10
+  transition
+"
+
                 >
                   <Avatar name={user.username} />
 
@@ -115,9 +125,15 @@ export default function Sidebar({
                     </p>
 
                     {onlineUsers.includes(user._id) && (
-                      <span className="text-xs text-green-400">
-                        online
-                      </span>
+                     <motion.span
+  initial={{ opacity: 0, scale: 0.8 }}
+  animate={{ opacity: 1, scale: 1 }}
+  exit={{ opacity: 0 }}
+  className="text-xs text-green-400"
+>
+  online
+</motion.span>
+
                     )}
                   </div>
 
