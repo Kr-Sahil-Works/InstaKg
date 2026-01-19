@@ -109,6 +109,11 @@ const handleNewMessage = (msg) => {
   ) {
     return;
   }
+  // ✅ HAPTIC — MESSAGE RECEIVED
+if (msg.senderId === other) {
+  navigator.vibrate?.(20);
+}
+
 
   // ✅ ADD — auto mark seen if message is from other user
   if (

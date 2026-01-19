@@ -40,6 +40,7 @@ export default function MessageInput({ receiverId, socket }) {
 
   /* ================= SEND ================= */
   const send = async (value) => {
+    navigator.vibrate?.(15);
     const msg = value.trim();
     if (!msg) return;
     const clientId = crypto.randomUUID();

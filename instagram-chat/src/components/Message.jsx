@@ -66,7 +66,8 @@ function EditDialog({ value, onCancel, onSave }) {
 
 /* ================= MESSAGE ================= */
 export default function Message({ msg }) {
-  
+  const [replying, setReplying] = useState(false);
+
 
   if (!msg) return null;
 
@@ -81,6 +82,8 @@ const canModify =
 
   const rootRef = useRef(null);
   const bubbleRef = useRef(null);
+    const swipeStartX = useRef(0);
+
   const pressTimer = useRef(null);
   const longPressed = useRef(false);
 
@@ -161,6 +164,7 @@ const [hasOverflow, setHasOverflow] = useState(false);
       );
       setSelected(true);
       setShowMenu(true);
+      navigator.vibrate?.(30);
     }, 450);
   };
 
@@ -190,7 +194,7 @@ const [hasOverflow, setHasOverflow] = useState(false);
 
   /* ===== REACT ===== */
   const react = async (emoji) => {
-    
+    navigator.vibrate?.(10);
     const res = await api.put(`/messages/react/${msg._id}`, { emoji });
     setReactions(res.data.reactions || []);
   };
@@ -260,11 +264,43 @@ const [hasOverflow, setHasOverflow] = useState(false);
             }}
           >
           <div
-  onMouseDown={startPress}
-  onMouseUp={endPress}
-  onTouchStart={startPress}
-  onTouchEnd={endPress}
-  onClick={handleClick}
+ onMouseDown={(e) => {
+  swipeStartX.current = e.clientX;
+  startPress();
+}}
+onMouseUp={(e) => {
+  const dx = e.clientX - swipeStartX.current;
+
+  if (
+    (!mine && dx > 60) ||
+    (mine && dx < -60)
+  ) {
+    setReplying(true);
+    navigator.vibrate?.(20);
+  }
+
+  endPress();
+}}
+onTouchStart={(e) => {
+  swipeStartX.current = e.touches[0].clientX;
+  startPress();
+}}
+onTouchEnd={(e) => {
+  const dx =
+    e.changedTouches[0].clientX - swipeStartX.current;
+
+  if (
+    (!mine && dx > 60) ||
+    (mine && dx < -60)
+  ) {
+    setReplying(true);
+    navigator.vibrate?.(20);
+  }
+
+  endPress();
+}}
+onClick={handleClick}
+
   className={`
     relative px-3 py-2 rounded-2xl text-[13px]
     whitespace-pre-wrap wrap-break-word
@@ -277,6 +313,11 @@ const [hasOverflow, setHasOverflow] = useState(false);
     }
   `}
 >
+{replying && (
+  <div className="mb-1 px-2 py-1 text-[11px] rounded-md bg-white/10 border-l-2 border-blue-400">
+    Replying to message
+  </div>
+)}
 
 
              <div
