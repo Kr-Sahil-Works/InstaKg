@@ -332,7 +332,7 @@ export default function MessageInput({ receiverId, socket }) {
       {/* ================= GLASS INPUT BAR ================= */}
 <div
  className="
-  shrink-0 w-full safe-bottom
+  shrink-0 w-full safe-bottom sticky bottom-0 z-40
   bg-background/65 
   border-t border-white/20
   px-3 py-2

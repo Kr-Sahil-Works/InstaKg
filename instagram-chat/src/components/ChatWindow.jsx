@@ -178,7 +178,7 @@ const handleNewMessage = (msg) => {
   /* ================= SOCKET ================= */
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 h-full touch-pan-y">
+    <div className="flex flex-col flex-1 min-h-0 h-dvh touch-pan-y">
 
 
 
@@ -321,7 +321,7 @@ const handleNewMessage = (msg) => {
    <div
   ref={listRef}
   onScroll={handleScroll}
-  className="flex-1 min-h-0 overflow-y-auto px-4 py-4 relative"
+  className="flex-1 min-h-0 overflow-y-auto px-4 py-4 relative overscroll-contain"
   style={{
     overscrollBehavior: "contain",
     WebkitOverflowScrolling: "touch",

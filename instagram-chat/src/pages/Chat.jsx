@@ -71,9 +71,9 @@ const onlineUsers = [];
         setOpen={setOpen}
       />
 
-      <section className="flex flex-col flex-1 overflow-hidden">
+      <section className="flex flex-col flex-1 overflow-hidden h-dvh">
         {/* HEADER */}
-        <div className="shrink-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b sticky top-0 z-20">
+        <div className="shrink-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b sticky top-0 z-30 bg-background">
           <div className="flex items-center gap-3">
             <button
               className="md:hidden p-3 text-lg hover:bg-black/20 rounded"
