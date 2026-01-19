@@ -28,9 +28,7 @@ const [cursor, setCursor] = useState({ x: 50, y: 50 });
 useEffect(() => {
   const onResize = () => {
     if (window.__ALLOW_AUTOSCROLL__) {
-      requestAnimationFrame(() => {
-        scrollToBottom(false);
-      });
+     scrollToBottom(false);
     }
   };
 
@@ -137,7 +135,7 @@ if (msg.senderId === other) {
   });
 
   if (isNearBottomRef.current) {
-    requestAnimationFrame(() => scrollToBottom(true));
+   scrollToBottom(true);
   } else {
     setUnreadCount((c) => c + 1);
   }
@@ -200,11 +198,10 @@ if (msg.senderId === other) {
     if (cancelled) return;
 
     setMessages(res.data || []);
-    isNearBottomRef.current = true;
+isNearBottomRef.current = true;
 
-    requestAnimationFrame(() => {
-      scrollToBottom(false);
-    });
+/* ⚡ IMMEDIATE SCROLL — NO RAF */
+bottomRef.current?.scrollIntoView({ behavior: "auto" });
   });
 
   return () => {
@@ -369,7 +366,7 @@ if (msg.senderId === other) {
       {messages.map((msg) => (
         <motion.div
           key={msg._id}
-          initial={{ opacity: 0, y: 6 }}
+          initial={{ opacity: 0, y: 2 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18 }}
           className="relative"
