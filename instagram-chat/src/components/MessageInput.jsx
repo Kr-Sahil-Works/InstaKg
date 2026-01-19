@@ -363,7 +363,7 @@ useEffect(() => {
   "
   style={{
     paddingBottom: "max(env(safe-area-inset-bottom), 8px)",
-    transform: `translateY(-${kbOffset}px)`,
+    marginBottom: `${kbOffset}px`,
   }}
 >
 

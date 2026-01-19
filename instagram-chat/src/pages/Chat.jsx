@@ -74,6 +74,20 @@ const onlineUsers = [];
         {/* HEADER */}
         <div className="fixed top-0 left-0 right-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b z-50 bg-background">
           <div className="flex items-center gap-3">
+            <motion.button
+  className="p-2 rounded-full hover:bg-black/20"
+  whileTap={{ scale: 0.85 }}
+  initial={{ opacity: 0, y: -6 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.2 }}
+  onClick={() => {
+    setSelectedUser(null);
+    setOpen(true);
+  }}
+>
+  🏠
+</motion.button>
+
             <button
               className="md:hidden p-3 text-lg hover:bg-black/20 rounded"
               onClick={() => setOpen(true)}

@@ -145,15 +145,29 @@ if (msg.senderId === other) {
 
 
   socket.on("newMessage", handleNewMessage);
+  socket.on("reactionUpdate", ({ messageId, reactions }) => {
+  setMessages((prev) =>
+    prev.map((m) =>
+      m._id === messageId ? { ...m, reactions } : m
+    )
+  );
+});
+
   socket.on("messageSeen", (messageId) => {
   setMessages((prev) =>
     prev.map((m) =>
       m._id === messageId
-        ? { ...m, seen: true, delivered: true }
+        ? {
+            ...m,
+            seen: true,
+            delivered: true,
+            seenAt: new Date().toISOString(),
+          }
         : m
     )
   );
 });
+
 
   socket.on("messagesSeenUpdate", ({ by }) => {
   setMessages((prev) =>
@@ -201,7 +215,8 @@ if (msg.senderId === other) {
   /* ================= SOCKET ================= */
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 h-dvh touch-pan-y">
+    <div className="flex flex-col flex-1 min-h-0 h-dvh touch-pan-y pb-[env(safe-area-inset-bottom)]">
+
 
 
 
@@ -344,7 +359,7 @@ if (msg.senderId === other) {
    <div
   ref={listRef}
   onScroll={handleScroll}
-  className="flex-1 min-h-0 overflow-y-auto px-4 py-4 relative overscroll-contain"
+  className="flex-1 min-h-0 overflow-y-auto px-4 pt-24 pb-4 relative overscroll-contain"
   style={{
     overscrollBehavior: "contain",
     WebkitOverflowScrolling: "touch",

@@ -193,11 +193,19 @@ const [hasOverflow, setHasOverflow] = useState(false);
   };
 
   /* ===== REACT ===== */
-  const react = async (emoji) => {
-    navigator.vibrate?.(10);
-    const res = await api.put(`/messages/react/${msg._id}`, { emoji });
-    setReactions(res.data.reactions || []);
-  };
+ const react = async (emoji) => {
+  navigator.vibrate?.(10);
+
+  const res = await api.put(`/messages/react/${msg._id}`, { emoji });
+
+  setReactions(res.data.reactions || []);
+
+  socket?.emit("reactionUpdate", {
+    messageId: msg._id,
+    reactions: res.data.reactions,
+  });
+};
+
 
   /* ===== DELETE ===== */
   const handleDelete = async () => {

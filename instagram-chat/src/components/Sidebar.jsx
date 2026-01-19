@@ -50,15 +50,20 @@ export default function Sidebar({
       >
         {/* TOP BAR */}
         <div className="shrink-0 px-3 py-3 border-b border-black/20 flex gap-2">
-          <button
-            onClick={() => {
-              setSelectedUser(null);
-              setOpen(false);
-            }}
-            className="p-2 rounded-full hover:bg-black/20"
-          >
+         <motion.button
+  whileTap={{ scale: 0.85 }}
+  initial={{ opacity: 0, y: -6 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.2 }}
+  onClick={() => {
+    setSelectedUser(null);
+    setOpen(false);
+  }}
+  className="p-2 rounded-full hover:bg-black/20"
+>
+
             <HiOutlineHome size={20} />
-          </button>
+          </motion.button>
 
           <div className="flex-1 relative">
             <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
@@ -71,8 +76,13 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* USERS */}
-        <div className="flex-1 overflow-y-auto">
+       {/* USERS */}
+<div
+  className="flex-1 overflow-y-auto pt-20 md:pt-0"
+  style={{
+    WebkitOverflowScrolling: "touch",
+  }}
+>
           <AnimatePresence>
             {filtered.map((user, index) => (
               <div key={user._id}>
