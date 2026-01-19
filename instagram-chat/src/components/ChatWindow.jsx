@@ -11,12 +11,15 @@ export default function ChatWindow({ user }) {
   const { socket } = useContext(SocketContext);
 
   const [messages, setMessages] = useState([]);
+  const PAGE_SIZE = 40;
+const [visibleStart, setVisibleStart] = useState(0);
+
   const [typing, setTyping] = useState(false);
   const isNearBottomRef = useRef(true);
   const [unreadCount, setUnreadCount] = useState(0);
 const [cursor, setCursor] = useState({ x: 50, y: 50 });
 
- const scrollToBottom = (smooth = true) => {
+ const scrollToBottom = (smooth = false) => {
   bottomRef.current?.scrollIntoView({
     behavior: smooth ? "smooth" : "auto",
   });
@@ -43,11 +46,13 @@ useEffect(() => {
 
 
   const { authUser } = useContext(AuthContext);
-  const handleScroll = () => {
+ const handleScroll = () => {
   const el = listRef.current;
   if (!el) return;
 
+  const nearTop = el.scrollTop < 80;
   const threshold = 80;
+
   const distanceFromBottom =
     el.scrollHeight - el.scrollTop - el.clientHeight;
 
@@ -55,7 +60,22 @@ useEffect(() => {
   isNearBottomRef.current = nearBottom;
 
   if (nearBottom) setUnreadCount(0);
+
+  // 🧠 LOAD OLDER MESSAGES
+  if (nearTop && visibleStart > 0) {
+    const nextStart = Math.max(visibleStart - PAGE_SIZE, 0);
+   const prevHeight = el.scrollHeight;
+
+setVisibleStart(nextStart);
+
+requestAnimationFrame(() => {
+  const newHeight = el.scrollHeight;
+  el.scrollTop += newHeight - prevHeight;
+});
+
+  }
 };
+
 
 useEffect(() => {
   const onLocalMessage = (e) => {
@@ -81,9 +101,7 @@ useEffect(() => {
       return [...prev, msg];
     });
 
-    requestAnimationFrame(() => {
-      scrollToBottom(true);
-    });
+   scrollToBottom(true);
   };
 
   window.addEventListener("local-message", onLocalMessage);
@@ -194,15 +212,26 @@ if (msg.senderId === other) {
 
   let cancelled = false;
 
-  api.get(`/messages/${user._id}`).then((res) => {
-    if (cancelled) return;
+ api.get(`/messages/${user._id}`).then((res) => {
+  if (cancelled) return;
 
-    setMessages(res.data || []);
-isNearBottomRef.current = true;
+  const all = res.data || [];
 
-/* ⚡ IMMEDIATE SCROLL — NO RAF */
-bottomRef.current?.scrollIntoView({ behavior: "auto" });
-  });
+  const start = Math.max(all.length - PAGE_SIZE, 0);
+
+  setMessages(all);
+  setVisibleStart(start);
+  requestAnimationFrame(() => {
+  bottomRef.current?.scrollIntoView({ behavior: "auto" });
+});
+
+
+  isNearBottomRef.current = true;
+
+  // ⚡ instant jump to bottom
+  bottomRef.current?.scrollIntoView({ behavior: "auto" });
+});
+
 
   return () => {
     cancelled = true;
@@ -356,14 +385,14 @@ bottomRef.current?.scrollIntoView({ behavior: "auto" });
    <div
   ref={listRef}
   onScroll={handleScroll}
-  className="flex-1 min-h-0 overflow-y-auto px-4 pt-24 pb-4 relative overscroll-contain"
+  className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 relative overscroll-contain"
   style={{
     overscrollBehavior: "contain",
     WebkitOverflowScrolling: "touch",
   }}
 >
 
-      {messages.map((msg) => (
+      {messages.slice(visibleStart).map((msg) => (
         <motion.div
           key={msg._id}
           initial={{ opacity: 0, y: 2 }}
