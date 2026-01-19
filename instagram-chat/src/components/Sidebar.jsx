@@ -39,17 +39,29 @@ export default function Sidebar({
         />
       )}
 
-      <aside
-        className={`
-          fixed md:static z-50
-          h-full w-72 flex flex-col
-          panel border-r border-black/20
-          transition-transform
-          ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        `}
-      >
-        {/* TOP BAR */}
-        <div className="shrink-0 px-3 py-3 border-b border-black/20 flex gap-2">
+     <aside
+  className={`
+    fixed md:static z-50
+    h-full w-72 flex flex-col
+    bg-[rgba(30,34,37,0.75)]
+    backdrop-blur-xl
+    text-white
+    border-r border-white/10
+    shadow-[0_0_40px_rgba(0,0,0,0.35)]
+    transition-transform
+    ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+  `}
+>
+
+       {/* TOP BAR */}
+<div className="
+  shrink-0 px-3 py-3
+  flex gap-2 items-center
+  bg-[rgba(30,34,37,0.6)]
+  backdrop-blur-md
+  border-b border-white/10
+">
+
          <motion.button
   whileTap={{ scale: 0.85 }}
   initial={{ opacity: 0, y: -6 }}
@@ -71,7 +83,16 @@ export default function Sidebar({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search"
-              className="w-full pl-9 pr-3 py-2 rounded-full bg-black/20 text-sm"
+              className="
+  w-full pl-9 pr-3 py-2
+  rounded-full
+  bg-white/10
+  backdrop-blur-md
+  text-sm text-white
+  placeholder:text-white/40
+  outline-none
+"
+
             />
           </div>
         </div>
@@ -105,24 +126,29 @@ export default function Sidebar({
   });
 }}
 
-                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-black/10"
+                  className="
+  flex items-center gap-3
+  px-4 py-3 mx-2 my-1
+  rounded-xl
+  cursor-pointer
+  bg-white/0
+  hover:bg-white/10
+  transition
+"
                 >
                   <Avatar name={user.username} />
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
+                    <p className="text-sm font-semibold text-white truncate">
                       {user.username}
                     </p>
 
                     {onlineUsers.includes(user._id) && (
-                     <motion.span
-  initial={{ opacity: 0, scale: 0.8 }}
-  animate={{ opacity: 1, scale: 1 }}
-  exit={{ opacity: 0 }}
-  className="text-xs text-green-400"
->
+                  <span className="flex items-center gap-1 text-xs text-green-400">
+  <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
   online
-</motion.span>
+</span>
+
 
                     )}
                   </div>
@@ -149,7 +175,7 @@ export default function Sidebar({
                 </motion.div>
 
                 {index !== filtered.length - 1 && (
-                  <div className="mx-4 border-b border-white/10" />
+                  <div className="mx-6 border-b border-white/5" />
                 )}
               </div>
             ))}
