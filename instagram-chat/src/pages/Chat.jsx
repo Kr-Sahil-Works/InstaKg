@@ -18,7 +18,6 @@ export default function Chat() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [open, setOpen] = useState(false);
   const [lastSeen, setLastSeen] = useState(null);
-const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   
 
@@ -33,6 +32,17 @@ const onlineUsers = [];
 
   const isOnline =
     selectedUser && onlineUsers.includes(selectedUser._id);
+    /* 🔒 HARD LOCK BODY SCROLL — ANDROID KEYBOARD FIX */
+useEffect(() => {
+  document.body.style.overflow = "hidden";
+  document.body.style.height = "100dvh";
+
+  return () => {
+    document.body.style.overflow = "";
+    document.body.style.height = "";
+  };
+}, []);
+
 
   useEffect(() => {
     if (selectedUser) {
@@ -73,7 +83,17 @@ const onlineUsers = [];
 
       <section className="flex flex-col flex-1 overflow-hidden">
         {/* HEADER */}
-        <div className="fixed top-0 left-0 right-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b z-50 bg-background">
+        <div
+  className="
+    sticky top-0
+    h-20 md:h-16
+    px-4
+    flex items-center justify-between
+    panel border-b
+    z-40
+    bg-background
+  "
+>
           <div className="flex items-center gap-3">
             <button
               className="md:hidden p-3 text-lg hover:bg-black/20 rounded"
@@ -220,7 +240,7 @@ const onlineUsers = [];
         </div>
 
       <motion.div
-  className="flex-1 overflow-hidden min-h-0 pt-20 md:pt-16"
+  className="flex-1 overflow-hidden min-h-0"
   drag="x"
   dragElastic={0.15}
   dragConstraints={{ left: 0, right: 0 }}

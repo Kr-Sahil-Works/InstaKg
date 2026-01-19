@@ -201,7 +201,7 @@ if (msg.senderId === other) {
   /* ================= SOCKET ================= */
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 h-dvh touch-pan-y">
+   <div className="flex flex-col flex-1 min-h-0 touch-pan-y">
 
 
 
@@ -344,7 +344,7 @@ if (msg.senderId === other) {
    <div
   ref={listRef}
   onScroll={handleScroll}
-  className="flex-1 min-h-0 overflow-y-auto px-4 py-4 relative overscroll-contain"
+  className="flex-1 min-h-0 overflow-y-auto px-4 pt-4 pb-4 relative overscroll-contain"
   style={{
     overscrollBehavior: "contain",
     WebkitOverflowScrolling: "touch",
