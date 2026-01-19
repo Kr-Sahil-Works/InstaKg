@@ -154,7 +154,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: url("/1.jpeg") center / cover no-repeat;
+  background: url("/login.png") center / cover no-repeat;
   position: relative;
 }
 
