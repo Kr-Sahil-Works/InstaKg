@@ -24,6 +24,24 @@ const [cursor, setCursor] = useState({ x: 50, y: 50 });
 
   const listRef = useRef(null);
   const bottomRef = useRef(null);
+// ✅ AUTO SCROLL ON VIEWPORT HEIGHT CHANGE (KEYBOARD)
+useEffect(() => {
+  const onResize = () => {
+    if (window.__ALLOW_AUTOSCROLL__) {
+      requestAnimationFrame(() => {
+        scrollToBottom(false);
+      });
+    }
+  };
+
+  window.visualViewport?.addEventListener("resize", onResize);
+  window.addEventListener("resize", onResize);
+
+  return () => {
+    window.visualViewport?.removeEventListener("resize", onResize);
+    window.removeEventListener("resize", onResize);
+  };
+}, []);
 
 
   const { authUser } = useContext(AuthContext);

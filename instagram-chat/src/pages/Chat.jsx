@@ -219,12 +219,15 @@ const onlineUsers = [];
           </div>
         </div>
 
-       <motion.div
+      <motion.div
   className="flex-1 overflow-hidden min-h-0"
   drag="x"
   dragElastic={0.15}
   dragConstraints={{ left: 0, right: 0 }}
-  style={{ touchAction: "pan-y" }}
+  style={{
+    touchAction: "pan-y",
+    height: "100dvh",
+  }}
   onDragEnd={(e, info) => {
     if (info.offset.x > 120 && selectedUser) {
       setSelectedUser(null);
@@ -232,6 +235,7 @@ const onlineUsers = [];
     }
   }}
 >
+
 
           <ChatWindow user={selectedUser} />
         </motion.div>

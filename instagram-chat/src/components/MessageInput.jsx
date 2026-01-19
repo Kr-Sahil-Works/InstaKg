@@ -16,6 +16,7 @@ let typingTimer;
 let longPressTimer;
 
 export default function MessageInput({ receiverId, socket }) {
+    const [kbOffset, setKbOffset] = useState(0);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -165,6 +166,27 @@ export default function MessageInput({ receiverId, socket }) {
     textareaRef.current?.focus();
     setShowClipboard(false);
   };
+useEffect(() => {
+  const vv = window.visualViewport;
+  if (!vv) return;
+
+  const update = () => {
+    const offset =
+      window.innerHeight - vv.height - vv.offsetTop;
+
+    setKbOffset(offset > 0 ? offset : 0);
+  };
+
+  update();
+
+  vv.addEventListener("resize", update);
+  vv.addEventListener("scroll", update);
+
+  return () => {
+    vv.removeEventListener("resize", update);
+    vv.removeEventListener("scroll", update);
+  };
+}, []);
 
   useEffect(() => {
     if (showClipboard) loadClipboard();
@@ -331,17 +353,19 @@ export default function MessageInput({ receiverId, socket }) {
 
       {/* ================= GLASS INPUT BAR ================= */}
 <div
- className="
-  shrink-0 w-full safe-bottom z-40
-  bg-background/65 
-  border-t border-white/20
-  px-3 py-2
-"
-
+  className="
+    shrink-0 w-full safe-bottom z-40
+    transition-transform duration-200
+    bg-background/65 
+    border-t border-white/20
+    px-3 py-2
+  "
   style={{
-    paddingBottom: "env(safe-area-inset-bottom)",
+    paddingBottom: "max(env(safe-area-inset-bottom), 8px)",
+    transform: `translateY(-${kbOffset}px)`,
   }}
 >
+
 
 
   <div className="flex items-end gap-2">
