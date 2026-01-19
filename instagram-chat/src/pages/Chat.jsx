@@ -71,9 +71,9 @@ const onlineUsers = [];
         setOpen={setOpen}
       />
 
-      <section className="flex flex-col flex-1 overflow-hidden h-dvh">
+      <section className="flex flex-col flex-1 overflow-hidden">
         {/* HEADER */}
-        <div className="shrink-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b sticky top-0 z-30 bg-background">
+        <div className="fixed top-0 left-0 right-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b z-50 bg-background">
           <div className="flex items-center gap-3">
             <button
               className="md:hidden p-3 text-lg hover:bg-black/20 rounded"
@@ -220,13 +220,12 @@ const onlineUsers = [];
         </div>
 
       <motion.div
-  className="flex-1 overflow-hidden min-h-0"
+  className="flex-1 overflow-hidden min-h-0 pt-20 md:pt-16"
   drag="x"
   dragElastic={0.15}
   dragConstraints={{ left: 0, right: 0 }}
   style={{
     touchAction: "pan-y",
-    height: "100dvh",
   }}
   onDragEnd={(e, info) => {
     if (info.offset.x > 120 && selectedUser) {
