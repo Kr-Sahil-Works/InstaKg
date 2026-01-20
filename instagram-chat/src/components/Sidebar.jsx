@@ -151,8 +151,6 @@ placeholder:text-gray-500 dark:placeholder:text-white/40
   <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
   online
 </span>
-
-
                     )}
                   </div>
 
