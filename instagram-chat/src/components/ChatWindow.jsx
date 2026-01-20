@@ -385,7 +385,7 @@ if (msg.senderId === other) {
    <div
   ref={listRef}
   onScroll={handleScroll}
- className="chat-bg flex-1 min-h-0 overflow-y-auto px-4 pb-4 relative overscroll-contain"
+ className="chat-bg flex-1 min-h-0 overflow-y-auto px-4 pt-6 pb-4 relative overscroll-contain"
   style={{
     overscrollBehavior: "contain",
     WebkitOverflowScrolling: "touch",
