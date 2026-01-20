@@ -57,6 +57,7 @@ useEffect(() => {
 }, [socket]);
 
 const [onlineUsers, setOnlineUsers] = useState([]);
+const [totalUnread, setTotalUnread] = useState(0);
 
 
 
@@ -97,37 +98,132 @@ const [onlineUsers, setOnlineUsers] = useState([]);
    <div className="flex h-full overflow-hidden">
 
     
-      <Sidebar
-        setSelectedUser={setSelectedUser}
-        onlineUsers={onlineUsers}
-        open={open}
-        setOpen={setOpen}
-      />
+     <Sidebar
+  setSelectedUser={setSelectedUser}
+  onlineUsers={onlineUsers}
+  open={open}
+  setOpen={setOpen}
+  setTotalUnread={setTotalUnread}
+/>
+
 
       <section className="flex flex-col flex-1 overflow-hidden">
         {/* HEADER */}
         <div className="fixed top-0 left-0 right-0 h-20 md:h-16 px-4 flex items-center justify-between panel border-b z-50 bg-background">
           <div className="flex items-center gap-3">
-           {/* HOME BUTTON — closes sidebar, goes home */}
+        {/* HOME BUTTON — closes sidebar, goes home */}
 <motion.button
   whileTap={{ scale: 0.85 }}
   onClick={() => {
     setSelectedUser(null);
     setOpen(false);
   }}
-  className="p-2 rounded-full hover:bg-black/20"
+  className="
+    p-2 rounded-full
+    hover:bg-black/20
+    text-gray-500 dark:text-gray-400
+  "
 >
-  {selectedUser ? <HiOutlineHome size={22} /> : <HiHome size={22} />}
+  <AnimatePresence mode="wait">
+    {selectedUser ? (
+      <motion.span
+        key="home-outline"
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.7, opacity: 0 }}
+      >
+        <HiOutlineHome size={22} />
+      </motion.span>
+    ) : (
+      <motion.span
+        key="home-solid"
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.7, opacity: 0 }}
+        className="text-[#25D366]"
+      >
+        <HiHome size={22} />
+      </motion.span>
+    )}
+  </AnimatePresence>
 </motion.button>
 
 {/* MESSAGE BUTTON — opens sidebar */}
 <motion.button
   whileTap={{ scale: 0.85 }}
+  animate={{ scale: open ? 1.08 : 1 }}
+  transition={{ type: "spring", stiffness: 400, damping: 18 }}
   onClick={() => setOpen(true)}
-  className="p-2 rounded-full hover:bg-black/20"
+  className="
+    relative p-2 rounded-full
+    hover:bg-black/20
+    text-gray-500 dark:text-gray-400
+  "
 >
-  {open ? <HiChatAlt2 size={22} /> : <HiOutlineChatAlt2 size={22} />}
+  <AnimatePresence mode="wait">
+    {open ? (
+      <motion.span
+        key="chat-solid"
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.7, opacity: 0 }}
+        className="text-[#25D366]"
+      >
+        <HiChatAlt2 size={22} />
+      </motion.span>
+    ) : (
+      <motion.span
+        key="chat-outline"
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.7, opacity: 0 }}
+      >
+        <HiOutlineChatAlt2 size={22} />
+      </motion.span>
+    )}
+  </AnimatePresence>
+
+  {/* 🔴 UNREAD BADGE */}
+  {totalUnread > 0 && (
+    <motion.span
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      className="
+        absolute -top-1 -right-1
+        min-w-[18px] h-[18px]
+        px-1
+        flex items-center justify-center
+        text-[10px] font-bold
+        rounded-full
+        bg-[#25D366] text-black
+      "
+    >
+      {totalUnread > 9 ? "9+" : totalUnread}
+    </motion.span>
+  )}
 </motion.button>
+
+{/* KEEP REST AS IS */}
+<AnimatePresence>
+  {selectedUser && (
+    <motion.button
+      key="back"
+      className="md:hidden p-2 rounded relative overflow-hidden back-btn"
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -10 }}
+      whileTap={{ scale: 0.88 }}
+      transition={{ duration: 0.18 }}
+      onClick={() => {
+        setSelectedUser(null);
+        setOpen(true);
+      }}
+    >
+      <span className="ripple" />
+    </motion.button>
+  )}
+</AnimatePresence>
+
 
 
           

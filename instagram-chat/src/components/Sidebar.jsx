@@ -10,6 +10,7 @@ export default function Sidebar({
   onlineUsers = [],
   open,
   setOpen,
+  setTotalUnread,
 }) {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
@@ -27,6 +28,14 @@ export default function Sidebar({
 
   /* ✅ FILTER AFTER SORT */
   const filtered = sortedUsers.filter(u =>
+    useEffect(() => {
+  const count = users.reduce(
+    (sum, u) => sum + (u.unreadCount || 0),
+    0
+  );
+  setTotalUnread?.(count);
+}, [users]);
+
     u.username.toLowerCase().includes(search.toLowerCase())
   );
 

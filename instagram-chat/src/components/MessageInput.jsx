@@ -40,7 +40,7 @@ export default function MessageInput({ receiverId, socket }) {
 
   /* ================= SEND ================= */
   const send = async (value) => {
-    navigator.vibrate?.(15);
+    
     const msg = value.trim();
     if (!msg) return;
     const clientId = crypto.randomUUID();
@@ -105,6 +105,7 @@ export default function MessageInput({ receiverId, socket }) {
 
       // 🔒 PREVENT ENTER DOUBLE FIRE
       if (!sendingRef.current) {
+         navigator.vibrate?.([20, 30, 20]); // same vibration
         send(e.currentTarget.value);
       }
     }
@@ -441,7 +442,10 @@ useEffect(() => {
 
    {/* SEND BUTTON — GLASS FLY */}
 <button
-  onClick={() => send(text)}
+ onClick={() => {
+  navigator.vibrate?.([20, 30, 20]); // WhatsApp-like tap
+  send(text);
+}}
   disabled={sending}
   className="
     relative h-10 w-10
