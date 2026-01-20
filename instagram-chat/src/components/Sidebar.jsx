@@ -19,6 +19,14 @@ export default function Sidebar({
     api.get("/users").then(res => setUsers(res.data || []));
   }, []);
 
+useEffect(() => {
+  const count = users.reduce(
+    (sum, u) => sum + (u.unreadCount || 0),
+    0
+  );
+  setTotalUnread?.(count);
+}, [users, setTotalUnread]);
+
   /* ✅ SORT USERS BY LATEST MESSAGE */
   const sortedUsers = [...users].sort((a, b) => {
     const aTime = new Date(a.lastMessageAt || 0).getTime();
@@ -27,17 +35,9 @@ export default function Sidebar({
   });
 
   /* ✅ FILTER AFTER SORT */
-  const filtered = sortedUsers.filter(u =>
-    useEffect(() => {
-  const count = users.reduce(
-    (sum, u) => sum + (u.unreadCount || 0),
-    0
-  );
-  setTotalUnread?.(count);
-}, [users]);
-
-    u.username.toLowerCase().includes(search.toLowerCase())
-  );
+const filtered = sortedUsers.filter(u =>
+  u.username.toLowerCase().includes(search.toLowerCase())
+);
 
   return (
     <>
