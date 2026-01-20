@@ -12,7 +12,7 @@ import api from "../api/axios";
 import { formatLastSeen } from "../utils/formatLastSeen";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { FiArrowLeft } from "react-icons/fi";
+
 import {
   HiHome,
   HiOutlineHome,
@@ -148,7 +148,7 @@ const [onlineUsers, setOnlineUsers] = useState([]);
                   }}
                 >
                   <span className="ripple" />
-                  <FiArrowLeft size={18} />
+                
                 </motion.button>
               )}
             </AnimatePresence>
