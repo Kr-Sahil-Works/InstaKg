@@ -190,7 +190,7 @@ const [totalUnread, setTotalUnread] = useState(0);
       animate={{ scale: 1 }}
       className="
         absolute -top-1 -right-1
-        min-w-[18px] h-[18px]
+        min-w-4.5 h-4.5
         px-1
         flex items-center justify-center
         text-[10px] font-bold
