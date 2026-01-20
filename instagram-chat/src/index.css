@@ -84,14 +84,14 @@ body {
    ========================================================= */
 .chat-bg {
   background-color: hsl(var(--background));
-  background-image:
-    radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 22px 22px;
+  background-image: url("/light.png");
+  background-repeat: repeat;
+  background-size: auto;
+  background-position: center;
 }
 
 .dark .chat-bg {
-  background-image:
-    radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-image: url("/dark.png");
 }
 
 /* =========================================================
@@ -154,7 +154,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: url("/login.png") center / cover no-repeat;
+  background: url("/bg20.png") center / cover no-repeat;
   position: relative;
 }
 
