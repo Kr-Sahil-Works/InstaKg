@@ -39,27 +39,29 @@ export default function Sidebar({
         />
       )}
 
-     <aside
+    <aside
   className={`
     fixed md:static z-50
     h-full w-72 flex flex-col
-    bg-[rgba(30,34,37,0.75)]
+    bg-white/80 dark:bg-[rgba(30,34,37,0.75)]
     backdrop-blur-xl
-    text-white
-    border-r border-white/10
+    text-gray-900 dark:text-white
+    border-r border-black/10 dark:border-white/10
     shadow-[0_0_40px_rgba(0,0,0,0.35)]
     transition-transform
     ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
   `}
 >
 
+
        {/* TOP BAR */}
 <div className="
   shrink-0 px-3 py-3
   flex gap-2 items-center
-  bg-[rgba(30,34,37,0.6)]
   backdrop-blur-md
-  border-b border-white/10
+  border-b 
+  bg-white/70 dark:bg-[rgba(30,34,37,0.6)]
+border-black/10 dark:border-white/10
 ">
 
          <motion.button
@@ -86,10 +88,11 @@ export default function Sidebar({
               className="
   w-full pl-9 pr-3 py-2
   rounded-full
-  bg-white/10
   backdrop-blur-md
-  text-sm text-white
-  placeholder:text-white/40
+  text-sm 
+  bg-black/5 dark:bg-white/10
+text-gray-900 dark:text-white
+placeholder:text-gray-500 dark:placeholder:text-white/40
   outline-none
 "
 
@@ -132,14 +135,14 @@ export default function Sidebar({
   rounded-xl
   cursor-pointer
   bg-white/0
-  hover:bg-white/10
+  hover:bg-black/5 dark:hover:bg-white/10
   transition
 "
                 >
                   <Avatar name={user.username} />
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                       {user.username}
                     </p>
 
